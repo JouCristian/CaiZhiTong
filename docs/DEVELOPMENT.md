@@ -206,3 +206,13 @@ Sprint 05 最终验收：Maven `clean package` **122/122** 通过（原 93、新
 官方 GitHub CLI 安装并校验后，由用户完成网页授权，确认账户 JouCristian；确认目标不存在后创建同名公开仓库，首次提交使用 GitHub noreply 邮箱。真实仓库及 CI 验证入口见 [发布记录](RELEASE-v0.6.0.md)。本轮不进行云部署，也不创建正式 Release / tag。
 
 首次源码提交 `0bc5942` 已正常 Push 到公开仓库 main，285 个远程文件哈希与本地审计提交逐项一致。GitHub Actions [41682135755](https://github.com/JouCristian/CaiZhiTong/actions/runs/41682135755) 于 2026-11-04 01:15:59（Asia/Shanghai）实际成功：Ubuntu PostgreSQL 15、Temurin JDK 17、Node 24.22.1，后端 147 项全部通过，前端 ci / typecheck / build 通过。结果依据读取的真实步骤与日志，不把本地浏览器结果写成远程已执行。随后仅整理文档记录，保留全部真实提交历史，未发布云端服务或正式 Release / tag。
+
+## Cloud Deployment 01 · 本地云适配验证 · 2026-11-04
+
+用户先确定 Supabase PostgreSQL / private Storage 与 Render 后端架构，后明确暂停浏览器和云资源操作，优先完成本地适配及测试。本轮不创建服务、不修改线上 Supabase、不执行生产管理员初始化，Vercel 留待后续。
+
+完成模式化 Supabase Storage、独立 Flyway DataSource、受限私有 Schema、SSL / 连接守卫、受控首次管理员、端口与低内存配置。V1–V6 原文件不变，没有 V7。local 存储和原 API / 角色逻辑保留。云环境样例只放占位符，真实云密钥纳入忽略与审计。
+
+新增 26 项测试（Storage 13、配置 5、真实 PostgreSQL / 本机 HTTP 集成 8）。修复首轮 AssertJ 断言签名、代理字段读取及将 Schema 创建标记误计为版本的问题后，全量 Maven verify **173/173**，原 147 项无回归；TypeScript / 生产构建通过；原完整浏览器 **64/64**（5.1 分钟）、五组 HTTP 冒烟通过。测试仅使用 *_test 库，私有业务 Schema 在本地创建，日常材料 / 批次 / 领用保持原值。
+
+CI 增加真实 Docker 构建及 512 MiB 容器启动检查，远程结果以实际运行日志和 main 徽章为准。真实 Supabase 密钥与 Bucket、Data API 角色权限、Render HTTPS / 长期内存稳定、跨部署附件持久化和生产初始化仍待用户验收后执行。完整实现和平台待办见 [云适配记录](CLOUD-DEPLOYMENT-01.md)，当前方案见 [部署说明](DEPLOYMENT.md)。

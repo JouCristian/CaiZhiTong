@@ -173,8 +173,11 @@ Get-Content ./.env | Select-String '^DEMO_(ADMIN|LAB|STUDENT)_PASSWORD='
 | `MAIL_*` | 可选服务端 SMTP 及通知配置 |
 | `VITE_API_BASE_URL` | 前端生产 API 来源，无 `/api` 后缀；本地留空使用代理 |
 | `API_PROXY_TARGET` | Vite 本地代理目标，生产前端不读取 |
+| `STORAGE_MODE` / `SUPABASE_*` | local 文件系统或后端代理的 Supabase 私有 Storage |
+| `DB_SCHEMA` / `DB_POOL_MAX` / `FLYWAY_DB_*` | 私有业务 Schema、连接池和独立迁移连接 |
+| `BOOTSTRAP_ADMIN_*` | 受控的首次管理员初始化，默认关闭，无公网注册接口 |
 
-完整模板：[后端](.env.example)、[前端](frontend/.env.example)。真实 `.env`、数据库目录、附件和日志不提交。
+完整模板：[本地后端](.env.example)、[前端](frontend/.env.example)、[云端后端](.env.cloud.example)。真实 `.env` / `.env.cloud`、数据库目录、附件和日志不提交。云模板不会被本地启动脚本自动加载。
 
 ## 数据库初始化与迁移
 
@@ -228,6 +231,8 @@ npm.cmd --prefix frontend run build
 
 **远程 CI 已实测通过**：[首次源码提交的 Actions 运行](https://github.com/JouCristian/CaiZhiTong/actions/runs/41682135755)在 Ubuntu / PostgreSQL 15 上通过 147 项后端测试，前端安装、类型检查和生产构建通过。最新 `main` 状态由顶部 CI 徽章实时展示；完整浏览器 64 项目前在本地 Windows 执行。
 
+**云适配本地验证（2026-11-04）**：后端 **173/173**（新增 26 项）、浏览器 **64/64**、类型检查、生产构建和五组 HTTP 冒烟通过；新增存储使用本机 HTTP 夹具及独立 PostgreSQL 私有 Schema 验证。真实 Supabase / Render 测试按用户要求暂停，不能视为上线成功。CI 新增 Docker 构建与 512 MiB 隔离启动检查，实际结果见工作流。[完整记录](docs/CLOUD-DEPLOYMENT-01.md)。
+
 ## 开发历程
 
 | Sprint | 交付 |
@@ -245,17 +250,17 @@ npm.cmd --prefix frontend run build
 
 ## 在线演示
 
-尚未部署，无公开体验地址。本轮只发布源码并验证 CI；Render、Neon、对象存储及 Vercel 将在后续单独验收，不提前创建正式 Release 或版本标签。
+尚未部署，无公开体验地址。当前确定为 Supabase PostgreSQL + 私有 Storage、Render Java 后端，Vercel 前端属于下一阶段。已编写云适配，本轮按用户要求仅进行本地隔离验证及 GitHub CI，不创建或修改云端资源，不提前创建正式 Release 或版本标签。
 
 ## 发布与当前边界
 
-前端已有 Vercel SPA 重写和后端 Docker 构建定义，照片当前使用文件系统。[部署说明](docs/DEPLOYMENT.md)列出 Render / Neon / Vercel 的配置要求及对象存储适配边界。[发布记录](docs/RELEASE-v0.6.0.md)记录本轮审计、复验与远程 CI 的实际状态；未执行云端部署。
+前端已有 Vercel SPA 重写，后端保留 local 存储并新增 Supabase 私有 Storage、独立 Flyway 连接、私有业务 Schema 与受控首次管理员初始化。[部署说明](docs/DEPLOYMENT.md)列出当前 Supabase / Render 架构及下一阶段 Vercel 配置；[源码发布记录](docs/RELEASE-v0.6.0.md)与[云适配验证记录](docs/CLOUD-DEPLOYMENT-01.md)分别记录真实结果，不将本地模拟通过写成云端部署成功。
 
 - 财务表是通用模板，未对接真实学校财务系统；没有真实 SMTP 凭据时，不宣称外部邮箱投递通过。
 - 取消登记可能保留未关联照片，暂不自动清理；发送中断可能留下 SENDING，需核查实际投递后处理。
 - JWT 无刷新令牌或逐设备撤销。退出清除当前浏览器会话；停用 / 密码重置撤销全部旧会话，角色变更在下一次请求生效。
 - 单实例课程项目，复杂审批、LDAP、AI 预测、小程序、多实例存储和生产压测未实现。
-- 后续可完善附件清理、审计、财务模板和生产初始化。所有当前核心菜单均提供真实功能。
+- 后续可完善附件清理、审计和财务模板。首次管理员初始化已实现，但尚未在生产执行；Supabase 实际连接、Data API 权限及 Storage 跨部署持久性仍待平台验收。
 
 ## 许可证
 

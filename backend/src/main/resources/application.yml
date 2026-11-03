@@ -9,8 +9,20 @@ spring:
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: ${DB_POOL_MAX:5}
+      minimum-idle: ${DB_POOL_MIN:0}
+      connection-timeout: 15000
+      schema: ${DB_SCHEMA:public}
   flyway:
     enabled: true
+    url: ${FLYWAY_DB_URL:${spring.datasource.url}}
+    user: ${FLYWAY_DB_USERNAME:${spring.datasource.username}}
+    password: ${FLYWAY_DB_PASSWORD:${spring.datasource.password}}
+    default-schema: ${DB_SCHEMA:public}
+    schemas: ${DB_SCHEMA:public}
+    clean-disabled: true
+    validate-on-migrate: true
   jackson:
     default-property-inclusion: non_null
   servlet:
@@ -30,7 +42,16 @@ management:
       show-details: never
 app:
   storage:
+    mode: ${STORAGE_MODE:local}
     root: ${STORAGE_ROOT:./.runtime/uploads}
+    supabase:
+      url: ${SUPABASE_URL:}
+      bucket: ${SUPABASE_STORAGE_BUCKET:caizhitong-attachments}
+      key: ${SUPABASE_STORAGE_KEY:}
+  bootstrap:
+    enabled: ${BOOTSTRAP_ADMIN_ENABLED:false}
+    username: ${BOOTSTRAP_ADMIN_USERNAME:}
+    password: ${BOOTSTRAP_ADMIN_PASSWORD:}
   alerts:
     scan-enabled: ${ALERT_SCAN_ENABLED:true}
   mail:

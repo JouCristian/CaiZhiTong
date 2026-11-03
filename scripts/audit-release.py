@@ -17,16 +17,18 @@ def sensitive_path(path):
     name = parts[-1].lower()
     return (any(p in {'.runtime', '.tools', 'node_modules', 'target', 'dist', 'pgdata',
                       'uploads', 'test-results', 'playwright-report'} for p in parts)
-            or (name.startswith('.env') and name != '.env.example')
+            or (name.startswith('.env') and name not in {'.env.example', '.env.cloud.example'})
             or name.endswith(('.log', '.pem', '.key', '.p12', '.pfx', '.jks',
                               '.keystore', '.dump', '.backup')))
 
 secrets = []
-for envfile in [ROOT / '.env', ROOT / 'frontend/.env']:
+for envfile in list(ROOT.glob('.env*')) + list((ROOT / 'frontend').glob('.env*')):
+    if envfile.name.endswith('.example'):
+        continue
     if envfile.exists():
         for line in envfile.read_text(encoding='utf-8-sig').splitlines():
             key, sep, value = line.partition('=')
-            if sep and re.search(r'PASSWORD|SECRET|TOKEN|CREDENTIAL', key) and len(value) >= 8:
+            if sep and re.search(r'PASSWORD|SECRET|TOKEN|CREDENTIAL|_KEY', key) and len(value) >= 8:
                 if not value.startswith('REPLACE_'):
                     secrets.append(value.encode('utf-8'))
 for key, value in os.environ.items():
@@ -41,6 +43,7 @@ patterns = [
     rb'npm_[A-Za-z0-9]{36}',
     rb'sk-(?:proj-|svcacct-)[A-Za-z0-9_-]{40,}',
     rb'xox[baprs]-[A-Za-z0-9-]{20,}',
+    rb'sb_secret_[A-Za-z0-9_-]{24,}',
     rb'eyJ[A-Za-z0-9_-]{15,}\.[A-Za-z0-9_-]{15,}\.[A-Za-z0-9_-]{20,}',
 ]
 def has_secret(data):

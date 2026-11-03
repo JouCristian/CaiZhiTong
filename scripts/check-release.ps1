@@ -2,18 +2,20 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 Push-Location $root
 try {
-    foreach ($path in @('.env','frontend/.env','.runtime/pgdata/PG_VERSION','backend/.runtime/uploads/photo.jpg','uploads/photo.jpg','private.key','certificate.pfx')) {
+    foreach ($path in @('.env','.env.cloud','frontend/.env','.runtime/pgdata/PG_VERSION','backend/.runtime/uploads/photo.jpg','uploads/photo.jpg','private.key','certificate.pfx')) {
         & git check-ignore --quiet -- $path
         if ($LASTEXITCODE -ne 0) { throw "Sensitive path is not ignored: $path" }
     }
     $privateValues = @()
-    if (Test-Path -LiteralPath '.env') {
-        foreach ($line in Get-Content -LiteralPath '.env') {
-            if ($line -match '^(DB_PASSWORD|JWT_SECRET|DEMO_(ADMIN|LAB|STUDENT)_PASSWORD|MAIL_PASSWORD)=(.+)$') {
-                $value = $matches[3]
+    foreach ($privateFile in @('.env','.env.cloud','frontend/.env')) {
+      if (Test-Path -LiteralPath $privateFile) {
+        foreach ($line in Get-Content -LiteralPath $privateFile) {
+            if ($line -match '^[A-Z][A-Z0-9_]*(PASSWORD|SECRET|TOKEN|CREDENTIAL|_KEY)=.+$') {
+                $value = $line.Substring($line.IndexOf('=') + 1)
                 if ($value.Length -ge 10 -and !$value.StartsWith('REPLACE_')) { $privateValues += $value }
             }
         }
+      }
     }
     $files = @(& git -c core.quotepath=false ls-files --cached --others --exclude-standard)
     if ($LASTEXITCODE -ne 0) { throw 'Cannot enumerate release candidate files.' }

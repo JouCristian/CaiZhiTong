@@ -6,7 +6,7 @@ PostgreSQL 15。默认数据库为 `caizhitong`，自动测试单独使用 `caiz
 
 唯一迁移源位于 `backend/src/main/resources/db/migration/`。V1 建立用户、角色、关联表及六类角色，包含用户名唯一约束、角色唯一约束、复合主键、外键和角色关联索引。时间戳使用 TIMESTAMPTZ。后续更新用户时应同步 updated_at。
 
-不在 SQL 中写入密码。只有 dev profile 且 DEMO_ENABLED=true 时，Java 初始化器读取本地环境变量、计算 BCrypt 并创建缺失演示账户。已存在的账户不覆盖密码或权限。
+不在 SQL 中写入密码。开发演示账户仅在 dev profile 且 DEMO_ENABLED=true 时初始化；独立的生产首管理员初始化默认关闭，详见下方云适配说明。两者均使用 BCrypt，不重置已有账户密码。
 
 ## 本地数据库
 
@@ -118,3 +118,13 @@ JUnit 清理在既有测试库保护下显式包含七张业务表（领用单 /
 用户管理串行 advisory transaction lock 内复核有效管理员，保护最后有效管理员。密码 BCrypt，查询投影不包含哈希 / 会话版本。角色每请求读取，停用 / 密码重置还校验 JWT 会话版本，重新启用后旧 JWT 不复活。
 
 本轮日常库已迁移至 V6，材料 / 批次 / 领用数量迁移前后均为 0，保留原三个演示账户。JUnit 与浏览器写入仍仅在独立测试库；浏览器重置只针对专用 E2E 库，保留账号、迁移，清理自有业务夹具及全局配置。Java 源脚本中的中文常量使用 Unicode 转义，避免 Windows 默认源编码差异。
+
+## Cloud Deployment 01 · 本地适配验证
+
+本轮保持 V1–V6 文件与校验内容不变，无 V7。新增数据库配置通过独立 Flyway DataSource 执行原迁移，业务 Hikari 池与迁移连接分开；缺省继承已解析的 spring.datasource 属性，测试动态 URL 不会误指向日常库。
+
+本地仍默认 public Schema。cloud profile 默认 caizhitong 私有 Schema，Flyway 只允许一个受限业务 Schema，必须与运行连接一致；不触碰 auth / storage / public 等平台 Schema。迁移前拒绝未启用 SSL、URL 内凭据、6543 事务池、校验关闭或 clean 启用。新 Schema 的 Flyway SCHEMA 标记不等于新增版本。
+
+新增真实 PostgreSQL 集成测试只在 *_test 数据库的 caizhitong_cloud_test Schema 初始化、清理和创建测试管理员。清理前检查库名及 Schema；日常和线上数据库不承载这些写入。测试验证六版本、独立连接、PRIVATE Schema 对 PUBLIC 无 USAGE，以及业务与附件元数据重新查询。真实 Supabase 的平台角色和 Exposed schemas 仍需后续验收。
+
+一次性生产管理员功能默认关闭，仅在明确启用且无有效 ADMIN 时执行，BCrypt、事务锁、同名账户拒绝接管，不重置既有密码；本轮仅在测试库运行。附件表继续保存原 storage_key，不改变表结构；Supabase 实现保存私有对象，本地实现保留。配置及未执行项见 [部署说明](../docs/DEPLOYMENT.md)与[云适配记录](../docs/CLOUD-DEPLOYMENT-01.md)。

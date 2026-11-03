@@ -372,4 +372,12 @@ GET /api/stock-transactions 增加 referenceType=INBOUND|ISSUE，orderId 为对�
 
 PDF 由后端 PDFBox 使用随 JAR 内嵌的开源中文字体生成，A4 自动换行 / 分页，内容取自单据快照，签字栏供手写。无外部生成服务，无 JWT / 密码进入文件。字体派生来源与 OFL 授权见 backend/src/main/resources/fonts/。
 
+## 云适配兼容说明
+
+本轮不改变 Sprint 01–06 的 API 契约，不增加生产管理员注册 / 初始化接口。受控首次初始化只读取后端安全环境变量，默认关闭。
+
+`POST /api/scraps/attachments` 与 `GET /api/scraps/attachments/{id}` 在 local / supabase 模式下沿用原角色、归属、类型及大小校验；Supabase 对象由后端鉴权代理，不返回公开图片 URL 或服务端 Storage key。数据库继续保存原 UUID 对象标识，查询接口继续过滤 storage_key / sha256。Storage 上游故障明确失败，不伪装成上传成功。
+
+现行云环境变量及真实验证边界见 [部署说明](DEPLOYMENT.md)和[云适配验证记录](CLOUD-DEPLOYMENT-01.md)。云端集成尚未执行，原本地存储与认证流程保留。
+
 

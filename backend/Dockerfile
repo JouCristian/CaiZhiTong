@@ -14,10 +14,9 @@ RUN groupadd --gid 10001 app \
     && mkdir -p /app/uploads && chown -R app:app /app
 WORKDIR /app
 COPY --from=build /build/target/backend-0.6.0.jar app.jar
-ENV SERVER_PORT=8080 \
-    STORAGE_ROOT=/app/uploads \
+ENV STORAGE_ROOT=/app/uploads \
     DEMO_ENABLED=false \
-    JAVA_TOOL_OPTIONS="-Djava.awt.headless=true"
+    JAVA_TOOL_OPTIONS="-Djava.awt.headless=true -XX:MaxRAMPercentage=40 -XX:MaxMetaspaceSize=128m -XX:ReservedCodeCacheSize=48m -XX:MaxDirectMemorySize=24m -XX:+UseSerialGC -Xss512k -XX:+ExitOnOutOfMemoryError"
 USER app
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]

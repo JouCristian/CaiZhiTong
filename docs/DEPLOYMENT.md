@@ -1,80 +1,96 @@
-# 发布准备与部署说明
+# 云端部署说明
 
-本文记录 v0.6.0 实际具备的配置入口及后续部署要求。尚未执行 Render、Neon、R2 或 Vercel 部署，不将配置准备写成上线成功。源码发布与 CI 状态见 [发布记录](RELEASE-v0.6.0.md)。
+当前确定架构：GitHub 源码 → Render Java 17 / Spring Boot → Supabase PostgreSQL + 私有 Storage。Vercel 前端属于下一阶段。历史发布记录中的其他供应商方案已被本方案替代，不代表当前部署选择。
 
-## GitHub 开源准备
+**当前只完成适配与本地隔离验证，尚未完成真实云端部署。** 本轮不控制浏览器、不创建 Render / Vercel 服务、不修改线上 Supabase 数据、不执行生产管理员初始化，也不开通付费资源。实际结果见 [Cloud Deployment 01](CLOUD-DEPLOYMENT-01.md)。
 
-1. Sprint 01–06 已由用户确认本地人工验收通过；源码发布前再次核对 README、实际截图、构建和测试。
-2. 代码使用根目录 MIT 许可证；内嵌中文字体使用独立 OFL，保留 `backend/src/main/resources/fonts/` 的许可与派生字体说明。
-3. `.env`、私有配置、上传附件、数据库数据、构建产物和测试日志均应保持忽略；`.env.example` 只含占位配置。提交前检查 `git status --short --untracked-files=all` 和暂存区 diff，不能因配置了 ignore 就省略审核。
-4. `docs/screenshots` 与 `docs/examples` 有意保留真实测试截图及非敏感报表示例。它们来自隔离数据库，不能替换为实际学生名单或真实财务记录。
-5. `.github/workflows/ci.yml` 已准备 Java / PostgreSQL 测试和前端构建；其中数据库密码为临时 CI 测试值，不是生产凭据。浏览器完整验收目前由 Windows 本地脚本执行。
-6. 本轮仅发布源码并验证真实 CI；正式 GitHub Release、版本 tag 和公开体验地址在云端验收后另行发布。首次提交不回填六轮虚构 Git 历史。
+## 配置入口
 
-## 前端：Vercel
+- 本地继续使用根 [.env.example](../.env.example)，默认 `local` 存储、`public` Schema，原三个开发演示账户逻辑不变。
+- 云配置模板为 [.env.cloud.example](../.env.cloud.example)。真实值应由用户在平台安全环境变量中设置，或保存在忽略的 `.env.cloud`，不要粘贴到聊天、提交 Git 或写进 Docker 构建参数。
+- `SPRING_PROFILES_ACTIVE=cloud` 启用云保护；仅复制模板不会自动部署。现有 `load-env.ps1` 只加载本地 `.env`，不会暗中切换至云库。
 
-- Root Directory：`frontend`
-- Framework：Vite
-- Install Command：`npm ci`
-- Build Command：`npm run build`
-- Output Directory：`dist`
-- 配置 `VITE_API_BASE_URL=https://你的后端域名`，不要附加 `/api`，也不要存入任何服务端密钥。
-- 已提供 `frontend/vercel.json` 的 SPA 重写，支持 `/reports`、`/settings` 和批次深层路由刷新。
-- Vite 开发代理仅供本地；云端 API 必须是浏览器可访问的 HTTPS 地址。
+## Supabase PostgreSQL
 
-## 后端：Render Docker
+沿用用户已经创建的 CaiZhiTong Free 项目（Mumbai），不要另建项目，不导入本地学生或财务数据。
 
-已提供 [backend/Dockerfile](../backend/Dockerfile) 多阶段构建与 [.dockerignore](../backend/.dockerignore)：Java 17、Maven Wrapper、非 root 运行、0.6.0 JAR，不复制本地 `.env` / target / 上传目录。当前没有本机 Docker 可执行环境，镜像构建及 Render 运行尚未验证。
+后续经用户授权部署时，在项目 Connect 页面读取准确主机、用户名和数据库名。先确认 Render 的 IP 出站能力：IPv6 可用时可选择 Direct；IPv4 环境选 **Session pooler 5432**。当前长期运行的 JDBC 应用不使用 Transaction pooler 6543，不按区域猜测主机。
 
-构建阶段显式安装 curl / unzip，使用固定 SHA256 的 Maven ZIP 分发包；在其他 Unix 环境直接运行 Wrapper 也需安装 unzip。数据库密码和 JWT 密钥只在运行时注入，不使用 Docker ARG / ENV 写进镜像构建层。
+连接形式：
 
-后续在 Render 创建 Docker Web Service 时：
+    DB_URL=jdbc:postgresql://<Connect 页面主机>:5432/<数据库>?sslmode=require
+    DB_USERNAME=<Connect 页面用户名>
+    DB_PASSWORD=<平台安全环境变量>
+    DB_SCHEMA=caizhitong
+    DB_POOL_MAX=3
+    DB_POOL_MIN=0
 
-- Docker Build Context Directory：`backend`；Dockerfile 路径：`backend/Dockerfile`（按控制台字段的仓库相对路径填写）。本地等价构建命令为 `docker build -t caizhitong-backend:0.6.0 ./backend`。
-- Dockerfile 自带 Java 启动命令，不填写 Vite / npm 启动命令。
-- 设置 `SERVER_PORT=10000` 并与 Render 分配端口一致，健康检查路径 `/actuator/health`。Spring 默认监听所有网络接口；当前应用只读取 SERVER_PORT，不自动读取平台 PORT。
-- `STORAGE_ROOT=/app/uploads`，必须挂载持久磁盘并验证 UID 10001 可写、重启后照片仍存在。免费临时磁盘不能作为可靠附件存储；需要持久磁盘时确认对应套餐能力。
-- 不设置 dev profile，`DEMO_ENABLED=false`。Dockerfile 跳过构建期测试，数据库测试由发布前检查和 CI 执行。
+JDBC URL 不嵌入用户名或密码。`cloud` profile 在迁移前拒绝未启用 SSL、URL 内凭据、6543 端口及不安全 Schema。证书校验选项不得通过关闭 TLS 来绕过；如使用 verify-full，需按 Supabase 提供的证书与主机配置验证。
 
-服务端配置：
+### 独立 Flyway 连接与 Schema
 
-1. Java 17 / Maven 构建 `backend-0.6.0.jar`，将 PostgreSQL 数据库 URL、用户名、密码通过部署平台环境配置提供。
-2. 不启用 dev profile，设置 `DEMO_ENABLED=false`；不公开开发演示账户。首次生产管理员应通过受控的一次性数据库初始化导入 BCrypt 哈希与 ADMIN 角色，初始化后由用户管理页维护；当前没有互联网公开注册或生产自助初始化接口。
-3. `JWT_SECRET` 使用独立随机 Base64 密钥（解码至少 32 字节）；生产不能复用本地或测试密钥。
-4. `CORS_ALLOWED_ORIGINS` 配置精确的前端 HTTPS 来源；`PUBLIC_WEB_URL` 使用该前端来源，供二维码与通知链接使用。
-5. 新空库首次启动自动执行 V1–V6；已有库按版本追加迁移，禁止手改已执行脚本或关闭校验。部署前先备份数据库。
-6. 初始业务时区取 `BUSINESS_TIME_ZONE`，未设置时 Asia/Shanghai。首次库存业务前可在系统设置调整；产生库存业务后锁定，不能通过普通设置接口追溯改变历史日期与额度月份。
-7. 将 `STORAGE_ROOT` 指向持久卷，独立备份照片；不能依赖临时容器磁盘。当前 `AttachmentStorage` 是文件系统实现，对象存储需要后续适配，不能仅填环境变量切换。
-8. 邮件凭据只配置在服务端：MAIL_HOST / MAIL_PORT / MAIL_USERNAME / MAIL_PASSWORD / MAIL_FROM 等；系统设置只展示准备状态并维护业务收件人。无配置时站内预警可用，但不会伪造邮件成功。
-9. 验证 `/actuator/health`、真实登录、CORS、六种下载、照片鉴权和深层路由；反向代理允许必要的上传大小（单张 5 MB，multipart 请求最多 6 MB）。
+`FLYWAY_DB_URL` / `FLYWAY_DB_USERNAME` / `FLYWAY_DB_PASSWORD` 为迁移配置；未单独设置时继承应用数据库配置，但 Spring Boot 仍创建 **独立 Flyway DataSource**，不从业务 Hikari 池借用迁移连接。需要时可为迁移和运行指定不同数据库角色。
 
-## 数据库：Neon PostgreSQL
+云端默认仅在 `caizhitong` Schema 创建业务表与 Flyway 历史，业务连接也使用同一 Schema；允许以 `caizhitong_` 开头的受限自定义名称。运行 Schema 与迁移 Schema 必须相同，迁移 Schema 只能有一个。不会向 Supabase 的 auth、storage、extensions 或 public Schema 写入业务表。
 
-后续创建独立项目与数据库后，将控制台的连接信息拆成服务端环境变量：
+V1–V6 不改写、不新增版本，仅在新私有 Schema 原样执行。始终启用 validate-on-migrate、禁用 clean；不使用 repair、关闭校验或删平台对象来掩盖问题。新建 Schema 时 Flyway 可能额外记录一条 Schema 创建标记，它不是 V7。
 
-```text
-DB_URL=jdbc:postgresql://<Neon直接连接主机>/<数据库名>?sslmode=require
-DB_USERNAME=<数据库角色>
-DB_PASSWORD=<由平台安全配置的密码>
-SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE=5
-```
+### Data API 防护
 
-尖括号为占位值，不包含实际凭据。Neon 的 `postgresql://` 地址需转换成 JDBC 格式，不把密码拼进可公开日志或 README。优先使用直接 / 非池化主机完成 Flyway，当前迁移与运行共享同一数据源；本轮不承诺与所有事务池模式兼容。
+后续必须在 Supabase Data API 配置中确认 `caizhitong` **不在 Exposed schemas**，或在不影响 Storage 的前提下关闭不需要的 Data API。不要把业务表移到默认公开 API Schema。前端仍只访问 Spring Boot，不使用 Supabase anon key 直接查询业务表。
 
-启动时自动校验并执行 V1–V6；迁移角色需有建表、索引、序列与触发器权限。新库为空时不要上传日常数据库 dump；示例材料也应另行明确选择导入。已有生产库先备份，禁止修改旧迁移、强制 repair 或关闭校验来掩盖错误。连接池数量按 Neon 套餐限额调整。尚未验证 Neon 冷启动、连接额度或跨区延迟。
+新私有 Schema 不授予 PUBLIC USAGE；真实 Supabase 上还需核对 anon / authenticated 等平台角色的 Schema / 表权限及 Data API 实测。当前本地测试不能替代此平台验收，也不会擅自更改线上权限。
 
-## 对象存储：当前边界与 Cloudflare R2 准备
+## Supabase 私有 Storage
 
-**v0.6.0 未实现 S3 / R2 适配器。** 不能把 R2 Endpoint 填入 STORAGE_ROOT，也不能仅增加 Access Key 就宣称附件可用。当前可用方式是后端持久文件系统及既有鉴权下载接口。
+通过 `STORAGE_MODE=local|supabase` 选择实现。默认本地模式保留原路径与文件持久化行为；Supabase 模式使用官方服务端 Storage REST API，不增加浏览器直传或公开图片 URL。
 
-若后续选用 R2，需要另轮开发并验证服务端存储适配：准备私有 Bucket、S3 兼容 Endpoint、限定 Bucket 权限的访问凭据，并通过后端安全环境配置管理；继续保留已有文件类型 / 大小 / 哈希校验和逐请求访问控制，不能直接公开学生附件。还需验证上传、认证读取、跨重启读取及历史本地附件迁移。此处为待办要求，本轮未创建 Bucket、未配置云凭据、未接入 SDK。
+    STORAGE_MODE=supabase
+    SUPABASE_URL=https://<项目引用>.supabase.co
+    SUPABASE_STORAGE_BUCKET=caizhitong-attachments
+    SUPABASE_STORAGE_KEY=<仅后端持有的服务端存储凭据>
 
-## 域名、跨域与演示账户
+后续由用户在现有项目创建或选择 **private** Bucket `caizhitong-attachments`，不要开启 Public；建议限制为 JPG / PNG / WebP 和 5 MB。凭据只放后端环境变量，不使用 anon / publishable key，不放入任何 VITE_ 配置。后端启动会鉴权读取 Bucket 元数据，拒绝公开、缺失或无法验证的 Bucket。
 
-- 前端 `VITE_API_BASE_URL` 指向 HTTPS 后端来源；后端 `CORS_ALLOWED_ORIGINS` 精确列出 HTTPS 前端来源，不使用带凭据的任意来源。
-- `PUBLIC_WEB_URL` 指向稳定前端公开域名，服务端用它生成二维码与邮件链接。上线后再生成 / 验证二维码；本地旧二维码不会因改配置自动重印。
-- 后端不能把 SMTP、数据库、JWT 或对象存储凭据返回给前端；这些值均不得使用 `VITE_` 前缀。
-- 本地三账户继续仅用于 dev。生产不沿用本地密码。若后续需要公开演示，使用独立演示库与独立受限账户，不放入真实学生、财务或附件数据；公开管理员账户可修改用户与系统，不能直接复用。
-- 首个生产管理员仍需受控一次性导入 BCrypt 哈希与 ADMIN 关联，当前没有生产自助初始化入口。生产初始化及公开演示的重置策略须上线前单独验收。
+应用保留原图片解码、5 MB / 2000 万像素限制和随机对象标识；上传成功后把对象标识、类型、大小、哈希和上传人保存到 PostgreSQL。所有读取继续经过 Spring Security、JWT、角色及附件归属检查，由后端代理返回，并设置 no-store / nosniff；不返回公开或长期签名 URL。上传不覆盖同名对象，数据库记录失败时尝试清理已上传对象。
 
-当前是单实例课程项目方案，尚未执行 Docker / 云服务运行、生产压测、多实例附件共享、外部邮箱投递和实际财务系统验收。公网发布前需确认数据库与附件备份、HTTPS、账户初始化、磁盘可写性和隐私要求。
+已在本机 loopback HTTP 夹具验证协议、鉴权和重新创建后端存储实例后的读取；**真实服务端凭据、平台网关、Bucket 和重新部署持久性仍待云端验证**。切换存储模式不会搬迁旧本地文件；已有附件若要迁移，需要单独实施，不删除本地原件。
+
+## 首个生产管理员
+
+生产必须 `DEMO_ENABLED=false`，不启用 dev profile，不沿用本地演示密码。使用受控的一次性启动初始化：
+
+    BOOTSTRAP_ADMIN_ENABLED=true
+    BOOTSTRAP_ADMIN_USERNAME=<唯一用户名，3–64 位>
+    BOOTSTRAP_ADMIN_PASSWORD=<新生成的 16–72 字节私人密码>
+
+只有没有任何启用 ADMIN 时才创建账户；密码 BCrypt，使用与用户维护一致的数据库事务锁。并发启动只创建一个有效管理员。存在有效管理员时重复启动直接跳过，不重置密码；用户名已被其他账户占用则拒绝接管。没有公开注册或初始化 HTTP 接口。
+
+成功验证首次登录后，删除一次性密码变量并设置 `BOOTSTRAP_ADMIN_ENABLED=false`。仅在没有有效管理员且明确启用该开关时才允许初始化；保留开关和秘密会留下未来重新初始化的能力，因此不应长期保存。初始化逻辑已在独立测试库验证，**本轮没有在生产执行**。
+
+## Render Docker：后续执行步骤
+
+本轮只准备并测试代码，不创建服务。后续选择 Free；遇到收费磁盘、套餐或网络能力确认时交给用户处理，不自动升级。
+
+- 仓库 `JouCristian/CaiZhiTong`，分支 main，Runtime Docker。
+- Docker build context `backend`；Dockerfile 使用控制台要求的仓库相对路径 `backend/Dockerfile`。本地等价命令：`docker build -t caizhitong-backend:0.6.0 ./backend`。
+- 健康检查 `/actuator/health`。cloud profile 优先 SERVER_PORT，其次平台 PORT，默认 10000；不要把后端作为 npm / Vite 服务启动。
+- 环境设置为 cloud profile、Supabase 模式、独立 DB / Flyway 配置与新 JWT 密钥。JWT_SECRET 使用新生成、Base64 解码至少 32 字节的随机值，不复用本地密钥。
+- 镜像以非 root 用户运行，JDK 17 容器感知堆上限为内存的 40%，Serial GC，限制 Metaspace / Code Cache / Direct Memory；cloud profile 限制 Tomcat 线程，数据库池默认最多 3 个连接。
+- GitHub CI 将实际构建 Docker 镜像，并在 512 MiB 限制下连接临时测试 PostgreSQL、以 local 存储启动验证健康 / 401 / OOM 与重启次数。这不代表 Render 或 Supabase 已部署。
+- Free 实例本地磁盘不是附件的可靠持久层，实际部署必须使用 Supabase 模式。照片不会依赖 Render 本地目录跨部署保存。
+- 启动失败需区分数据库连接 / SSL / 权限 / Schema、Bucket 鉴权和 OOM；不得把内存不足简单报告成数据库故障。真实平台还需观察冷启动、连续请求和重启指标。
+
+## CORS、公开域名与通知
+
+Vercel 尚未部署时，`CORS_ALLOWED_ORIGINS` 和 `PUBLIC_WEB_URL` 可以留空；这不开放任意生产跨域，受控 API 脚本仍可验证后端。下一阶段填入稳定 HTTPS 前端来源，不能使用通配 CORS。
+
+`PUBLIC_WEB_URL` 用于二维码和邮件链接，上线前需更新并重新生成相应标签；原二维码不会自动重印。SMTP 不是部署阻塞项：无配置时站内预警继续工作，邮件如实显示 NOT_CONFIGURED。
+
+## Vercel：下一阶段，不在本轮执行
+
+前端 Root Directory 为 frontend，Build Command `npm run build`，Output Directory dist。设置 `VITE_API_BASE_URL=https://<已验收后端域名>`，不附加 /api，不存服务端秘密；现有 vercel.json 支持 SPA 深层路由。只有后端、数据库、附件与权限云端验收通过后才进入前端部署。
+
+## 真实云端验收待办
+
+Supabase Connect / SSL / Data API 权限、原始六版迁移实际执行、private Bucket 与服务端凭据、生产管理员初始化、Render 免费 Docker 构建与 HTTPS 启动、业务闭环与六种导出、照片跨重启 / 再部署保留、低内存稳定性均需单独实际验证。未部署的能力不标记成功。最终版本标签、GitHub Release 和在线体验链接继续等待云端验收。

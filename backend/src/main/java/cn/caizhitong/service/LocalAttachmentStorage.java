@@ -1,9 +1,11 @@
 package cn.caizhitong.service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import java.nio.file.*;
 import java.io.IOException;
 @Component
+@ConditionalOnProperty(name="app.storage.mode",havingValue="local",matchIfMissing=true)
 public class LocalAttachmentStorage implements AttachmentStorage {
  private final Path root;
  public LocalAttachmentStorage(@Value("${app.storage.root:./.runtime/uploads}")String root){this.root=Path.of(root).toAbsolutePath().normalize();}

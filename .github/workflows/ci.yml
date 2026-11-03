@@ -40,3 +40,27 @@ jobs:
         working-directory: frontend
       - run: npm run typecheck && npm run build
         working-directory: frontend
+      - name: Build backend Docker image
+        run: docker build --tag caizhitong-backend:ci ./backend
+      - name: Smoke Docker runtime within 512 MiB
+        shell: bash
+        run: |
+          export JWT_SECRET="$(openssl rand -base64 48)"
+          docker run -d --name caizhitong-ci-runtime --network host --memory 512m --memory-swap 512m \
+            -e DB_URL -e DB_USERNAME -e DB_PASSWORD -e JWT_SECRET \
+            -e SERVER_PORT=18080 -e DEMO_ENABLED=false -e BOOTSTRAP_ADMIN_ENABLED=false \
+            -e STORAGE_MODE=local -e ALERT_SCAN_ENABLED=false -e MAIL_DISPATCH_ENABLED=false \
+            caizhitong-backend:ci
+          trap 'docker rm -f caizhitong-ci-runtime >/dev/null 2>&1 || true' EXIT
+          for attempt in $(seq 1 90); do
+            if curl --fail --silent http://127.0.0.1:18080/actuator/health > /tmp/caizhitong-health.json; then break; fi
+            if [ "$(docker inspect -f '{{.State.Running}}' caizhitong-ci-runtime)" != true ]; then
+              docker logs caizhitong-ci-runtime
+              exit 1
+            fi
+            sleep 2
+          done
+          python3 -c 'import json; assert json.load(open("/tmp/caizhitong-health.json"))["status"] == "UP"'
+          test "$(curl --silent -o /dev/null -w '%{http_code}' http://127.0.0.1:18080/api/auth/me)" = 401
+          test "$(docker inspect -f '{{.State.OOMKilled}}/{{.RestartCount}}' caizhitong-ci-runtime)" = false/0
+          docker stats --no-stream --format '{{.MemUsage}}' caizhitong-ci-runtime
