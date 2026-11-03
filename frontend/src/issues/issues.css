@@ -1,0 +1,223 @@
+.issue-history {
+  padding: 8px 24px 20px;
+  overflow: hidden;
+}
+.issue-filters > .ant-input-search {
+  flex-basis: 330px;
+}
+.issue-filters > .ant-input {
+  flex: 1;
+  min-width: 160px;
+}
+.issue-batch-summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg);
+  margin: 18px 0;
+}
+.issue-batch-summary > div:first-child {
+  min-width: 0;
+}
+.issue-batch-summary strong {
+  font-size: 17px;
+  overflow-wrap: anywhere;
+}
+.issue-batch-summary span,
+.issue-batch-summary small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+}
+.issue-available {
+  flex-shrink: 0;
+  text-align: right;
+}
+.issue-available strong {
+  display: block;
+  margin-top: 12px;
+  font-size: 24px;
+  font-variant-numeric: tabular-nums;
+}
+.issue-available strong small {
+  display: inline;
+  font-weight: 400;
+}
+.issue-quota {
+  background: var(--blue-tint);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+.issue-quota strong {
+  font-size: 13px;
+}
+.issue-quota p {
+  margin: 8px 0;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.issue-quota small {
+  color: var(--muted);
+  font-size: 11px;
+}
+.issue-amount {
+  border-top: 1px solid var(--line);
+  padding: 24px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.issue-amount > span {
+  font-size: 13px;
+  color: var(--muted);
+}
+.issue-amount > strong {
+  font-size: 27px;
+  letter-spacing: -0.4px;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.issue-amount > small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.issue-confirm > .ant-alert {
+  margin-bottom: 18px;
+}
+.issue-lines-title {
+  font-size: 15px;
+  margin: 20px 0 14px;
+}
+.issue-lines {
+  display: grid;
+  gap: 16px;
+}
+.issue-detail-line {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 20px;
+}
+.issue-line-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+}
+.issue-line-heading h3 {
+  font-size: 15px;
+  margin-bottom: 7px;
+}
+.issue-line-heading small {
+  font-size: 11px;
+  color: var(--muted);
+}
+.issue-detail-line .ant-descriptions {
+  margin-top: 14px;
+}
+.issue-records {
+  display: grid;
+  gap: 14px;
+}
+.issue-record-card {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 18px;
+  min-width: 0;
+}
+.issue-record-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+}
+.issue-record-card h3 {
+  font-size: 16px;
+  margin: 16px 0 8px;
+  overflow-wrap: anywhere;
+}
+.issue-record-card p {
+  font-size: 11px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.issue-record-card dl {
+  display: grid;
+  gap: 9px;
+  margin: 16px 0;
+}
+.issue-record-card dl > div {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+}
+.issue-record-card dt {
+  width: 42px;
+  flex-shrink: 0;
+  color: var(--muted);
+}
+.issue-record-card dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.issue-record-card time {
+  font-size: 11px;
+  color: var(--muted);
+}
+.issue-record-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+.issue-mobile-pagination {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+.batch-issue-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+@media (max-width: 760px) {
+  .issue-history {
+    padding: 8px 16px 20px;
+  }
+  .issue-filters > .ant-picker {
+    width: 100%;
+  }
+  .issue-batch-summary {
+    padding: 16px;
+    gap: 14px;
+  }
+  .issue-batch-summary strong {
+    font-size: 15px;
+  }
+  .issue-available strong {
+    font-size: 22px;
+  }
+  .issue-line-heading {
+    flex-wrap: wrap;
+  }
+  .issue-detail-line {
+    padding: 16px;
+  }
+  .issues-page .page-heading {
+    gap: 16px;
+  }
+  .issues-page .page-heading > .ant-space {
+    align-self: flex-start;
+  }
+  .issue-amount > strong {
+    font-size: 24px;
+  }
+  .issue-record-actions > .ant-btn {
+    flex: 1;
+  }
+}

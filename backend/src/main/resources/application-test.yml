@@ -1,0 +1,10 @@
+app:
+  storage:
+    root: ./.runtime/test-uploads
+  alerts:
+    scan-enabled: false
+  mail:
+    host: ''
+    from: ''
+    recipients: ''
+    dispatch-enabled: false

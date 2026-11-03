@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.caizhitong.mapper.IssueMapper">
+ <sql id="projection">SELECT o.*,o.username_snapshot AS account_name,o.user_name_snapshot AS recipient_name,(SELECT count(*) FROM issue_order_line l WHERE l.issue_order_id=o.id) AS line_count,(SELECT string_agg(l.material_name,'、' ORDER BY l.line_no) FROM issue_order_line l WHERE l.issue_order_id=o.id) AS material_names,(SELECT string_agg(l.batch_code,'、' ORDER BY l.line_no) FROM issue_order_line l WHERE l.issue_order_id=o.id) AS batch_codes,(SELECT string_agg(l.quantity::text||' '||l.unit,' / ' ORDER BY l.line_no) FROM issue_order_line l WHERE l.issue_order_id=o.id) AS quantity_summary FROM issue_order o</sql>
+ <sql id="where"><where>
+  <if test="owner != null">AND o.user_id=#{owner}</if>
+  <if test="pattern != null">AND (o.issue_no ILIKE #{pattern} ESCAPE '\' OR o.project_no ILIKE #{pattern} ESCAPE '\' OR EXISTS(SELECT 1 FROM issue_order_line l WHERE l.issue_order_id=o.id AND (l.material_name ILIKE #{pattern} ESCAPE '\' OR l.material_code ILIKE #{pattern} ESCAPE '\')))</if>
+  <if test="materialPattern != null">AND EXISTS(SELECT 1 FROM issue_order_line l WHERE l.issue_order_id=o.id AND (l.material_name ILIKE #{materialPattern} ESCAPE '\' OR l.material_code ILIKE #{materialPattern} ESCAPE '\'))</if>
+  <if test="userPattern != null">AND (o.user_name_snapshot ILIKE #{userPattern} ESCAPE '\' OR o.username_snapshot ILIKE #{userPattern} ESCAPE '\')</if>
+  <if test="q.projectNo != null and q.projectNo != ''">AND o.project_no=#{q.projectNo}</if>
+  <if test="fromTime != null">AND o.created_at&gt;=#{fromTime}</if>
+  <if test="toTime != null">AND o.created_at&lt;#{toTime}</if>
+ </where></sql>
+ <sql id="bind"><bind name="pattern" value="q.getPattern()"/><bind name="materialPattern" value="q.getMaterialPattern()"/><bind name="userPattern" value="q.getUserPattern()"/><bind name="limit" value="q.getPageSize()"/><bind name="offset" value="q.getOffset()"/></sql>
+ <select id="order" resultType="cn.caizhitong.dto.IssueOrderRow"><include refid="projection"/> WHERE o.id=#{id}</select>
+ <select id="lines" resultType="cn.caizhitong.dto.IssueLineRow">SELECT l.*,COALESCE((SELECT sum(r.quantity) FROM return_order_line r WHERE r.issue_order_line_id=l.id),0) AS returned_quantity,l.quantity-COALESCE((SELECT sum(r.quantity) FROM return_order_line r WHERE r.issue_order_line_id=l.id),0) AS returnable_quantity,t.transaction_no,t.before_quantity,t.after_quantity FROM issue_order_line l JOIN stock_transaction t ON t.issue_line_id=l.id WHERE l.issue_order_id=#{id} ORDER BY l.line_no</select>
+ <select id="query" resultType="cn.caizhitong.dto.IssueOrderRow"><include refid="bind"/><include refid="projection"/><include refid="where"/> ORDER BY o.created_at DESC,o.id DESC LIMIT #{limit} OFFSET #{offset}</select>
+ <select id="count" resultType="long"><include refid="bind"/>SELECT count(*) FROM issue_order o <include refid="where"/></select>
+ <select id="available" resultType="cn.caizhitong.dto.BatchRow">
+  <include refid="cn.caizhitong.mapper.StockMapper.batchSelect"/>
+  WHERE b.item_id=#{id} AND b.quantity&gt;0 ORDER BY b.received_at,b.id LIMIT #{size} OFFSET #{offset}
+ </select>
+</mapper>
+
+

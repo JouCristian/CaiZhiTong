@@ -1,0 +1,12 @@
+# No credentials are embedded here. scripts/setup-local.ps1 generates ignored .env.
+app:
+  public-web-url: ${PUBLIC_WEB_URL:http://127.0.0.1:5173}
+  demo:
+    enabled: ${DEMO_ENABLED:false}
+    admin-password: ${DEMO_ADMIN_PASSWORD:}
+    lab-password: ${DEMO_LAB_PASSWORD:}
+    student-password: ${DEMO_STUDENT_PASSWORD:}
+logging:
+  level:
+    cn.caizhitong: INFO
+

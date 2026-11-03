@@ -1,0 +1,263 @@
+.stock-metrics {
+  margin-bottom: 24px;
+}
+.stock-values {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 12px 0;
+  font-variant-numeric: tabular-nums;
+  font-size: 20px;
+  overflow-wrap: anywhere;
+}
+.stock-table-panel {
+  padding: 8px 24px 18px;
+  overflow: hidden;
+}
+.stock-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 8px 0 24px;
+}
+.stock-filters > .ant-input-search {
+  flex: 2;
+  min-width: 220px;
+}
+.stock-filters > .ant-select,
+.stock-filters > .ant-input-affix-wrapper {
+  flex: 1;
+  min-width: 160px;
+}
+.stock-hint {
+  font-size: 12px;
+  color: var(--text-secondary, #7a7f87);
+  line-height: 1.7;
+  margin-top: 16px;
+}
+.stock-block {
+  display: block;
+  font-size: 12px;
+  color: #818690;
+  margin-top: 4px;
+}
+.stock-detail {
+  padding: 32px;
+  max-width: 980px;
+}
+.stock-detail-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.stock-detail-title h2 {
+  font-size: 24px;
+  margin: 0 0 8px;
+}
+.stock-detail-title p {
+  color: #80858e;
+  margin: 0;
+}
+.stock-pager {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+}
+.stock-peek {
+  background: #f5f7fa;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin: 20px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.stock-peek strong {
+  margin-left: 8px;
+}
+.batch-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  border: 1px solid #e6e8ed;
+  border-radius: 16px;
+  padding: 24px;
+  margin: 16px 0;
+  background: white;
+  color: #17202d;
+  break-inside: avoid;
+}
+.batch-label h2 {
+  font-size: 21px;
+  margin: 16px 0 8px;
+  overflow-wrap: anywhere;
+}
+.batch-label p {
+  margin: 0 0 8px;
+  color: #6a717d;
+  white-space: pre-wrap;
+}
+.batch-label strong {
+  letter-spacing: 1px;
+  margin: 12px 0;
+}
+.batch-label small {
+  font-size: 11px;
+}
+.label-brand {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #616974;
+}
+.print-label {
+  display: none;
+}
+.inbound-line {
+  border: 1px solid #e8eaee;
+  border-radius: 14px;
+  padding: 20px;
+  margin: 16px 0;
+  background: #fafbfc;
+}
+.inbound-line-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.inbound-line-top h3 {
+  margin: 0;
+  font-size: 14px;
+}
+.inbound-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0 16px;
+}
+.inbound-grid .ant-form-item {
+  min-width: 0;
+}
+.inbound-summary {
+  background: #f1f6fe;
+  padding: 20px;
+  border-radius: 14px;
+  margin: 24px 0;
+}
+.inbound-summary h3 {
+  margin-top: 0;
+}
+.inbound-summary-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 7px 0;
+  font-size: 13px;
+  border-bottom: 1px solid #e3eaf5;
+}
+.inbound-summary-total {
+  display: flex;
+  gap: 18px;
+  justify-content: flex-end;
+  margin-top: 16px;
+  font-weight: 600;
+  flex-wrap: wrap;
+}
+.activity-records {
+  list-style: none;
+  padding: 0 24px;
+  margin: 0;
+}
+.activity-records li {
+  display: flex;
+  gap: 12px;
+  padding: 16px 0;
+  border-bottom: 1px solid #edf0f3;
+}
+.activity-records li > span {
+  color: #1677ff;
+}
+.activity-records strong {
+  display: block;
+  font-size: 13px;
+}
+.activity-records p {
+  font-size: 12px;
+  color: #7d8491;
+  margin: 5px 0;
+}
+.activity-records time {
+  font-size: 11px;
+  color: #9096a1;
+}
+@media (max-width: 700px) {
+  .stock-table-panel {
+    padding: 8px 12px 16px;
+  }
+  .stock-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .stock-detail {
+    padding: 20px;
+  }
+  .stock-detail-title {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .inbound-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .inbound-line {
+    padding: 14px;
+  }
+  .batch-label {
+    padding: 16px;
+  }
+  .stock-filters > .ant-input-search {
+    width: 100%;
+    flex-basis: 100%;
+  }
+  .inbound-summary-row {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .stock-metrics .metric {
+    min-width: 0;
+  }
+}
+@media print {
+  body > * {
+    display: none !important;
+  }
+  body > .print-label {
+    display: block !important;
+  }
+  .print-label {
+    width: 85mm;
+    margin: 0 auto;
+  }
+  .print-label .batch-label {
+    border: 1px solid black;
+    border-radius: 0;
+    margin: 0;
+    padding: 5mm;
+  }
+  .print-label img {
+    width: 50mm;
+    height: 50mm;
+  }
+  .print-label .batch-label h2 {
+    font-size: 14pt;
+  }
+  .print-label small {
+    font-size: 8pt;
+  }
+  @page {
+    margin: 10mm;
+  }
+}

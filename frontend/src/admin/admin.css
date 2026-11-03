@@ -1,0 +1,154 @@
+.admin-profile {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin: 6px 0 28px;
+}
+.admin-profile > span {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  background: var(--blue-tint);
+  color: var(--blue);
+  font-size: 22px;
+  border-radius: 13px;
+}
+.admin-profile h2 {
+  font-size: 22px;
+}
+.admin-profile p {
+  color: var(--muted);
+  margin-top: 6px;
+}
+.admin-card-actions {
+  margin-top: 12px;
+}
+.settings-layout {
+  display: grid;
+  grid-template-columns: 172px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.settings-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  position: sticky;
+  top: 90px;
+}
+.settings-nav a {
+  padding: 13px 15px;
+  color: var(--ink);
+  font-size: 13px;
+  border-radius: 9px;
+}
+.settings-nav a:hover {
+  background: var(--blue-tint);
+  color: var(--blue);
+}
+.settings-nav small {
+  padding: 20px 15px;
+  line-height: 1.9;
+  color: var(--muted);
+  font-size: 11px;
+}
+.settings-form {
+  min-width: 0;
+}
+.settings-section {
+  padding: 25px 28px;
+  margin-bottom: 20px;
+  scroll-margin-top: 90px;
+}
+.settings-section .panel-heading {
+  margin-bottom: 25px;
+}
+.settings-section .panel-heading h2 {
+  font-size: 17px;
+}
+.settings-section .ant-form-item-label > label {
+  font-size: 12px;
+}
+.settings-section .ant-form-item-extra {
+  font-size: 11px;
+  line-height: 1.8;
+  padding-top: 6px;
+}
+.settings-fields {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 18px;
+}
+.mail-config-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 45px;
+  margin-bottom: 22px;
+}
+.mail-config-summary span {
+  color: var(--muted);
+  font-size: 12px;
+}
+.mail-config-summary strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 15px;
+  font-weight: 550;
+}
+.settings-effective {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.settings-effective .ant-tag {
+  margin-bottom: 6px;
+}
+.settings-notification-table {
+  overflow: hidden;
+}
+.brand {
+  min-width: 0;
+}
+.brand > div {
+  min-width: 0;
+  flex: 1;
+}
+.brand strong {
+  display: block;
+}
+.brand strong,
+.brand div > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+@media (max-width: 760px) {
+  .settings-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .settings-nav {
+    position: static;
+    flex-direction: row;
+    gap: 2px;
+    flex-wrap: wrap;
+  }
+  .settings-nav a {
+    padding: 10px 12px;
+  }
+  .settings-nav small {
+    display: none;
+  }
+  .settings-section {
+    padding: 22px 18px;
+  }
+  .settings-fields {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+}

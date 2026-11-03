@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.caizhitong.mapper.MaterialMapper">
+  <sql id="from">
+    FROM material_item m JOIN material_category c ON c.id=m.category_id
+    LEFT JOIN material_category p ON p.id=c.parent_id
+  </sql>
+  <sql id="where">
+    <bind name="keywordPattern" value="q.getKeywordPattern()"/>
+    <where>
+      <if test="keywordPattern != null">
+        AND (m.name ILIKE #{keywordPattern} ESCAPE '\' OR m.material_code ILIKE #{keywordPattern} ESCAPE '\')
+      </if>
+      <if test="q.categoryId != null">AND m.category_id IN (SELECT id FROM material_category WHERE id=#{q.categoryId} OR parent_id=#{q.categoryId})</if>
+      <if test="q.brand != null">AND m.brand=#{q.brand}</if>
+      <if test="q.model != null">AND m.model=#{q.model}</if>
+      <if test="q.status != null">AND m.status=#{q.status}</if>
+    </where>
+  </sql>
+  <select id="query" resultType="cn.caizhitong.entity.MaterialItem">
+    <bind name="pageSize" value="q.getPageSize()"/><bind name="pageOffset" value="q.getOffset()"/>
+    SELECT m.*, COALESCE(p.name || ' / ' || c.name,c.name) AS category_path <include refid="from"/><include refid="where"/>
+    ORDER BY m.created_at <choose><when test="q.order == 'asc'">ASC</when><otherwise>DESC</otherwise></choose>,
+    m.id <choose><when test="q.order == 'asc'">ASC</when><otherwise>DESC</otherwise></choose>
+    LIMIT #{pageSize} OFFSET #{pageOffset}
+  </select>
+  <select id="countQuery" resultType="long">SELECT count(*) <include refid="from"/><include refid="where"/></select>
+  <select id="detail" resultType="cn.caizhitong.entity.MaterialItem">
+    SELECT m.*, COALESCE(p.name || ' / ' || c.name,c.name) AS category_path <include refid="from"/> WHERE m.id=#{id}
+  </select>
+</mapper>
+

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.caizhitong.mapper.StockMapper">
+ <sql id="bindings">
+  <bind name="pattern" value="q.getPattern()"/><bind name="pageSize" value="q.getPageSize()"/>
+  <bind name="pageOffset" value="q.getOffset()"/>
+ </sql>
+ <sql id="stockCte">
+  WITH s AS (SELECT item_id,sum(quantity) AS quantity,count(*) AS batch_count,max(received_at) AS last_received_at FROM stock_batch GROUP BY item_id),
+  v AS (SELECT m.id AS item_id,m.material_code,m.name,m.brand,m.model,m.category_id,
+   COALESCE(p.name||' / '||c.name,c.name) AS category_path,m.unit,m.safe_stock,m.status AS material_status,
+   COALESCE(s.quantity,0) AS quantity,COALESCE(s.batch_count,0) AS batch_count,s.last_received_at,
+   CASE WHEN COALESCE(s.quantity,0)=0 THEN 'ZERO' WHEN s.quantity&lt;m.safe_stock THEN 'LOW' ELSE 'NORMAL' END AS stock_status
+   FROM material_item m JOIN material_category c ON c.id=m.category_id LEFT JOIN material_category p ON p.id=c.parent_id LEFT JOIN s ON s.item_id=m.id)
+ </sql>
+ <sql id="stockWhere">
+  <where>
+   <if test="pattern != null">AND (name ILIKE #{pattern} ESCAPE '\' OR material_code ILIKE #{pattern} ESCAPE '\')</if>
+   <if test="q.categoryId != null">AND category_id IN (SELECT id FROM material_category WHERE id=#{q.categoryId} OR parent_id=#{q.categoryId})</if>
+   <if test="q.itemId != null">AND item_id=#{q.itemId}</if>
+   <if test="q.materialIds != null and !q.materialIds.isEmpty()">AND item_id IN <foreach collection="q.materialIds" item="i" open="(" separator="," close=")">#{i}</foreach></if>
+   <if test="q.stockStatus == 'ZERO'">AND quantity=0</if>
+   <if test="q.stockStatus == 'LOW'">AND quantity&lt;safe_stock</if>
+   <if test="q.stockStatus == 'NORMAL'">AND quantity&gt;=safe_stock AND quantity&gt;0</if>
+  </where>
+ </sql>
+ <select id="stocks" resultType="cn.caizhitong.dto.StockRow"><include refid="bindings"/><include refid="stockCte"/> SELECT * FROM v <include refid="stockWhere"/> ORDER BY item_id DESC LIMIT #{pageSize} OFFSET #{pageOffset}</select>
+ <select id="countStocks" resultType="long"><include refid="bindings"/><include refid="stockCte"/> SELECT count(*) FROM v <include refid="stockWhere"/></select>
+ <select id="stock" resultType="cn.caizhitong.dto.StockRow"><include refid="stockCte"/> SELECT * FROM v WHERE item_id=#{id}</select>
+ <select id="counts" resultType="cn.caizhitong.dto.StockCounts"><include refid="stockCte"/> SELECT count(*) AS material_count,count(*) FILTER(WHERE quantity&gt;0) AS stocked_material_count,count(*) FILTER(WHERE quantity&lt;safe_stock) AS low_stock_count FROM v</select>
+ <select id="stockValues" resultType="cn.caizhitong.dto.StockSummary$Money">
+  SELECT l.currency_snapshot AS currency,sum(b.quantity*b.unit_price_snapshot) AS amount FROM stock_batch b JOIN inbound_order_line l ON l.id=b.inbound_line_id GROUP BY l.currency_snapshot ORDER BY l.currency_snapshot
+ </select>
+ <sql id="batchSelect">
+  SELECT m.status AS material_status,b.id,b.item_id,b.batch_code,b.initial_quantity,b.quantity,b.unit_price_snapshot,
+   l.currency_snapshot AS currency,l.item_code_snapshot AS item_code,l.item_name_snapshot AS item_name,l.spec_snapshot AS spec,l.unit_snapshot AS unit,
+   b.received_at,b.expire_date,b.location,b.remark,b.created_by,u.display_name AS operator_name,l.order_id,o.order_no,l.line_no,b.created_at
+   FROM stock_batch b JOIN material_item m ON m.id=b.item_id JOIN inbound_order_line l ON l.id=b.inbound_line_id JOIN inbound_order o ON o.id=l.order_id JOIN sys_user u ON u.id=b.created_by
+ </sql>
+ <select id="batches" resultType="cn.caizhitong.dto.BatchRow"><include refid="bindings"/><include refid="batchSelect"/> WHERE b.item_id=#{itemId} ORDER BY b.received_at DESC,b.id DESC LIMIT #{pageSize} OFFSET #{pageOffset}</select>
+ <select id="countBatches" resultType="long">SELECT count(*) FROM stock_batch WHERE item_id=#{itemId}</select>
+ <select id="batch" resultType="cn.caizhitong.dto.BatchRow"><include refid="batchSelect"/> WHERE b.batch_code=#{code}</select>
+ <select id="orderLines" resultType="cn.caizhitong.dto.BatchRow"><include refid="batchSelect"/> WHERE l.order_id=#{orderId} ORDER BY l.line_no</select>
+ <sql id="orderSelect">SELECT o.*,u.display_name AS operator_name,(SELECT count(*) FROM inbound_order_line l WHERE l.order_id=o.id) AS line_count FROM inbound_order o JOIN sys_user u ON u.id=o.created_by</sql>
+ <sql id="orderWhere"><where>
+  <if test="pattern != null">AND o.order_no ILIKE #{pattern} ESCAPE '\'</if>
+  <if test="fromTime != null">AND o.created_at&gt;=#{fromTime}</if><if test="toTime != null">AND o.created_at&lt;#{toTime}</if>
+ </where></sql>
+ <select id="orders" resultType="cn.caizhitong.dto.InboundRow"><include refid="bindings"/><include refid="orderSelect"/><include refid="orderWhere"/> ORDER BY o.created_at DESC,o.id DESC LIMIT #{pageSize} OFFSET #{pageOffset}</select>
+ <select id="countOrders" resultType="long"><include refid="bindings"/>SELECT count(*) FROM inbound_order o <include refid="orderWhere"/></select>
+ <select id="order" resultType="cn.caizhitong.dto.InboundRow"><include refid="orderSelect"/> WHERE o.id=#{id}</select>
+ <sql id="transactionSelect">
+  SELECT t.id,t.transaction_no,b.item_id,l.item_name_snapshot AS item_name,l.item_code_snapshot AS item_code,b.batch_code,t.txn_type,t.qty,t.before_quantity,t.after_quantity,l.unit_snapshot AS unit,t.user_id,u.display_name AS operator_name,COALESCE(t.inbound_order_id,t.issue_order_id,t.return_order_id,t.scrap_order_id) AS order_id,CASE t.txn_type WHEN 'IN' THEN 'INBOUND' WHEN 'OUT' THEN 'ISSUE' WHEN 'RETURN' THEN 'RETURN' ELSE 'SCRAP' END AS reference_type,t.reference_no,t.project_no,t.usage,t.remark,t.created_at
+   FROM stock_transaction t JOIN stock_batch b ON b.id=t.batch_id JOIN inbound_order_line l ON l.id=b.inbound_line_id JOIN sys_user u ON u.id=t.user_id
+ </sql>
+ <sql id="transactionWhere"><where>
+  <if test="viewer != null">AND (t.txn_type IN ('IN','SCRAP') OR (t.txn_type='OUT' AND t.user_id=#{viewer}) OR (t.txn_type='RETURN' AND EXISTS(SELECT 1 FROM return_order r WHERE r.id=t.return_order_id AND r.user_id=#{viewer})))</if>
+  <if test="pattern != null">AND (l.item_name_snapshot ILIKE #{pattern} ESCAPE '\' OR l.item_code_snapshot ILIKE #{pattern} ESCAPE '\' OR t.transaction_no ILIKE #{pattern} ESCAPE '\')</if>
+  <if test="q.itemId != null">AND b.item_id=#{q.itemId}</if>
+  <if test="q.batchCode != null and q.batchCode != ''">AND b.batch_code=#{q.batchCode}</if>
+  <if test="q.txnType != null">AND t.txn_type=#{q.txnType}</if>
+  <if test="fromTime != null">AND t.created_at&gt;=#{fromTime}</if><if test="toTime != null">AND t.created_at&lt;#{toTime}</if>
+ </where></sql>
+ <select id="transactions" resultType="cn.caizhitong.dto.TransactionRow"><include refid="bindings"/><include refid="transactionSelect"/><include refid="transactionWhere"/> ORDER BY t.created_at DESC,t.id DESC LIMIT #{pageSize} OFFSET #{pageOffset}</select>
+ <select id="countTransactions" resultType="long"><include refid="bindings"/>SELECT count(*) FROM stock_transaction t JOIN stock_batch b ON b.id=t.batch_id JOIN inbound_order_line l ON l.id=b.inbound_line_id <include refid="transactionWhere"/></select>
+ <select id="recentTransactions" resultType="cn.caizhitong.dto.TransactionRow"><include refid="transactionSelect"/> WHERE t.txn_type='IN' ORDER BY t.created_at DESC,t.id DESC LIMIT 5</select>
+</mapper>
+
+
