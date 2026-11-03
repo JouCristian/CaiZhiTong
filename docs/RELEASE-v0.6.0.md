@@ -51,6 +51,19 @@ MIT 保留，标准 Maven Wrapper 3.3.4 的 Apache-2.0 许可单独保存在 `ba
 - 本记录随真实初始源码提交写入，首次 Push 后须读取该提交的 Actions 实际结果；失败应修复后追加真实提交再验证，不使用 force push，不回填六轮历史，不创建正式 Release / tag。
 - 认证通过 CLI 系统凭据存储；提交作者使用已确认 GitHub ID 的 noreply 邮箱，不把私人邮箱或 OAuth Token 写入源码 / 远程 URL。
 
+### 首次 Push 与实际远程结果
+
+首次源码提交：[0bc5942fadeca9a71002f6803873be6b75e08938](https://github.com/JouCristian/CaiZhiTong/commit/0bc5942fadeca9a71002f6803873be6b75e08938)。已正常 Push 至 main；没有 force push，没有覆盖其他远程仓库。GitHub 确认为公开、main 默认分支、MIT 许可证；远程递归树 285 个文件的 blob ID / mode 与本地提交逐项一致，包括 Unix Wrapper 可执行位。真实配置、数据库、上传目录和构建结果不在远程树中。
+
+首次 CI：[Build and test #41682135755](https://github.com/JouCristian/CaiZhiTong/actions/runs/41682135755)，`completed / success`，完成于 2026-11-04 01:15:59（Asia/Shanghai）。已读取真实步骤与日志：
+
+- Ubuntu PostgreSQL 15 服务成功启动，Temurin JDK 17 与 Node 24.22.1 安装成功。
+- Maven Wrapper verify：147 项，0 失败、0 错误、0 跳过，BUILD SUCCESS。
+- npm ci：成功，报告 0 vulnerabilities。
+- TypeScript 与生产构建：成功，保留已知 vendor 体积提示。
+
+发布记录与 README 的结果整理作为后续真实文档提交，仍由同一 push 工作流自动检查。最新 main 的实际状态查看 Actions / README 实时徽章，不回填虚构成功结果。本地 Windows 首次 TLS 握手失败后，仅为本次 Git 推送切换到 Git 自带 OpenSSL 后端并成功；证书校验始终开启，未全局关闭 TLS 校验或持久修改用户的 Git 凭据助手。
+
 ## 后续部署边界
 
 尚未部署 Render、Neon、Cloudflare R2 或 Vercel，未发布公网体验地址。Docker 镜像尚未实际构建验证，公开管理员初始化、附件持久存储与备份、外部 SMTP、生产压测和学校财务对接需单独验收。详见 [部署说明](DEPLOYMENT.md)。

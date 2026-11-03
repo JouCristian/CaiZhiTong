@@ -204,3 +204,5 @@ Sprint 05 最终验收：Maven `clean package` **122/122** 通过（原 93、新
 发布前重新安装依赖并完整复验：Maven Wrapper verify **147/147**，TypeScript / 构建通过，桌面 / 移动浏览器 **64/64**（5.3 分钟），五组真实 API 冒烟通过。Node 24.22.1、JDK 17.0.20+8、PostgreSQL 15.15。日常前端重装依赖期间暂时关闭以释放 Windows esbuild 文件锁，完成后恢复；数据库和日常后端保留。
 
 官方 GitHub CLI 安装并校验后，由用户完成网页授权，确认账户 JouCristian；确认目标不存在后创建同名公开仓库，首次提交使用 GitHub noreply 邮箱。真实仓库及 CI 验证入口见 [发布记录](RELEASE-v0.6.0.md)。本轮不进行云部署，也不创建正式 Release / tag。
+
+首次源码提交 `0bc5942` 已正常 Push 到公开仓库 main，285 个远程文件哈希与本地审计提交逐项一致。GitHub Actions [41682135755](https://github.com/JouCristian/CaiZhiTong/actions/runs/41682135755) 于 2026-11-04 01:15:59（Asia/Shanghai）实际成功：Ubuntu PostgreSQL 15、Temurin JDK 17、Node 24.22.1，后端 147 项全部通过，前端 ci / typecheck / build 通过。结果依据读取的真实步骤与日志，不把本地浏览器结果写成远程已执行。随后仅整理文档记录，保留全部真实提交历史，未发布云端服务或正式 Release / tag。

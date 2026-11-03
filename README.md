@@ -2,7 +2,7 @@
 
 面向高校实验室的智慧材料库数字化管理系统。以 React、Spring Boot 和 PostgreSQL 连接材料档案、入库、领用、归还报废、预警与报表，提供可追溯、可本地演示的完整业务闭环。
 
-**当前版本：v0.6.0，Sprint 01–06 已通过本地人工验收。** 所有核心菜单均已接入真实功能，当前进行首次源码发布；尚未部署公网演示。
+**当前版本：v0.6.0，Sprint 01–06 已通过本地人工验收，源码已公开。** 所有核心菜单均已接入真实功能；尚未部署公网演示。
 
 [![Build and test](https://github.com/JouCristian/CaiZhiTong/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/JouCristian/CaiZhiTong/actions/workflows/ci.yml)
 
@@ -225,6 +225,8 @@ npm.cmd --prefix frontend run build
 **Sprint 06 最终结果（2026-11-04）：后端 147/147、Chrome 桌面 / 移动模拟 64/64 通过，失败及跳过均为 0。** TypeScript、生产构建、五组隔离真实 HTTP 冒烟、日常健康 / 三账户认证及敏感路径检查通过；启停 / 密码重置另重复 6 次通过。浏览器预览服务使用 Node 24.22.1。原 Sprint 05 的 122 项后端与 56 项浏览器保留回归。修复过程和实际命令见 [Sprint 06](docs/SPRINT-06.md)。报告位于 `backend/target/surefire-reports`、`frontend/playwright-report`，不提交测试日志或令牌。
 
 **首次源码发布前复验（2026-11-04）**：重新执行 `npm ci`、Maven Wrapper `verify`、类型检查、构建和完整浏览器；后端 **147/147**、浏览器 **64/64** 及五组 API 冒烟全部通过。GitHub Actions 配置执行 PostgreSQL 15 集成测试与前端检查 / 构建，远程真实状态单独记录在 [发布记录](docs/RELEASE-v0.6.0.md)，不将本地结果冒充远程 CI。
+
+**远程 CI 已实测通过**：[首次源码提交的 Actions 运行](https://github.com/JouCristian/CaiZhiTong/actions/runs/41682135755)在 Ubuntu / PostgreSQL 15 上通过 147 项后端测试，前端安装、类型检查和生产构建通过。最新 `main` 状态由顶部 CI 徽章实时展示；完整浏览器 64 项目前在本地 Windows 执行。
 
 ## 开发历程
 
