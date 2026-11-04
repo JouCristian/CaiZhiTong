@@ -14,6 +14,9 @@ export const modules = [
   { key: 'reports', title: '数据报表', icon: BarChartOutlined, description: '从材料流转中了解使用与库存趋势', phase: '统计分析' },
   { key: 'users', title: '用户与权限', icon: TeamOutlined, description: '管理成员账户与角色分配', phase: '权限管理' },
   { key: 'settings', title: '系统设置', icon: SettingOutlined, description: '配置材料库基础信息与系统偏好', phase: '基础配置' },
+  { key: 'demo/dashboard', title: '演示工作台', icon: AppstoreOutlined, description: '独立合成数据概览' },
+  { key: 'demo/materials', title: '演示材料', icon: DatabaseOutlined, description: '浏览合成材料档案' },
+  { key: 'demo/stocks', title: '演示库存', icon: InboxOutlined, description: '查看示例批次与库存变化' },
 ]
 export const roleNames: Record<string, string> = {
   GUEST: '游客', STUDENT: '学生', LAB_TECH: '实验员', TEACHER: '教师', PURCHASER: '采购员', ADMIN: '系统管理员',

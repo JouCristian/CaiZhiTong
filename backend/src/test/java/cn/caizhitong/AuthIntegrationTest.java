@@ -87,7 +87,7 @@ class AuthIntegrationTest {
             case "TEACHER" -> Set.of("materials","inventory","requisitions","returns","alerts","reports");
             case "PURCHASER" -> Set.of("materials","inventory","inbound","alerts","reports");
             case "STUDENT" -> Set.of("materials","requisitions","returns","reports");
-            default -> Set.of("materials","inventory");
+            default -> Set.of();
         };
         for (String module: List.of("materials","inventory","inbound","requisitions","returns","alerts","reports","users","settings")) {
             mvc.perform(get("/api/workspace/modules/"+module).header("Authorization","Bearer "+token))

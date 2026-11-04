@@ -1,9 +1,13 @@
 import java.sql.*;
 
-/** Creates only the two project-owned databases; credentials come from the process environment. */
+/** Creates only project-owned development/test databases; credentials come from the process environment. */
 class DatabaseAdmin {
     public static void main(String[] args) throws Exception {
-        String db = args.length > 0 && args[0].equals("e2e-db") ? "caizhitong_e2e_test" : args.length > 0 && args[0].equals("test-db") ? "caizhitong_test" : "caizhitong";
+        String db = args.length > 0 && args[0].equals("e2e-db") ? "caizhitong_v070_demo_e2e_test" : args.length > 0 && args[0].equals("test-db") ? "caizhitong_test" : "caizhitong";
+        if (args.length > 0 && args[0].equals("test-db") && System.getenv("TEST_DATABASE_NAME") != null) {
+            db=System.getenv("TEST_DATABASE_NAME");
+            if(!db.matches("caizhitong_[a-z0-9_]+_test"))throw new IllegalArgumentException("Only project-owned isolated test database names are allowed");
+        }
         String port = System.getenv().getOrDefault("POSTGRES_PORT", "5432");
         try (Connection connection = DriverManager.getConnection("jdbc:postgresql://127.0.0.1:" + port + "/postgres",
                 System.getenv("DB_USERNAME"), System.getenv("DB_PASSWORD"))) {
@@ -17,7 +21,7 @@ class DatabaseAdmin {
             }
         }
         if (args.length > 1 && args[1].equals("reset-business")) {
-            if (!db.equals("caizhitong_e2e_test")) throw new IllegalArgumentException("Only the dedicated E2E database can be reset");
+            if (!db.equals("caizhitong_v070_demo_e2e_test")) throw new IllegalArgumentException("Only the dedicated E2E database can be reset");
             try (Connection c=DriverManager.getConnection("jdbc:postgresql://127.0.0.1:"+port+"/"+db,System.getenv("DB_USERNAME"),System.getenv("DB_PASSWORD"))) {
                 try(var check=c.createStatement();var r=check.executeQuery("SELECT current_database()")){r.next();if(!db.equals(r.getString(1)))throw new IllegalStateException("Wrong E2E database");}
                 var owned=java.util.Set.of("mail_notification","inventory_alert","return_order_line","return_order","scrap_order","stock_attachment","stock_transaction","issue_order_line","issue_order","issue_monthly_usage","stock_batch","inbound_order_line","inbound_order","material_item","material_category");

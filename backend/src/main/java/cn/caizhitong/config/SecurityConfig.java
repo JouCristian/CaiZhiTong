@@ -61,7 +61,12 @@ public class SecurityConfig {
             .authorizeHttpRequests(a -> a
                 .requestMatchers(HttpMethod.POST,"/api/auth/login","/api/auth/oauth/exchange").permitAll()
                 .requestMatchers(HttpMethod.GET,"/actuator/health","/api/public/system","/api/auth/oauth/config").permitAll()
-                .requestMatchers("/api/**").authenticated().anyRequest().denyAll())
+                .requestMatchers(HttpMethod.GET,"/api/auth/me","/api/demo/**").authenticated()
+                .requestMatchers("/api/demo/**").denyAll()
+                // Deny formal data to demo-only accounts before controller dispatch,
+                // including legacy, download and future business endpoints.
+                .requestMatchers("/api/**").hasAnyRole("ADMIN","LAB_TECH","STUDENT","TEACHER","PURCHASER")
+                .anyRequest().denyAll())
             .exceptionHandling(e -> e.authenticationEntryPoint(unauth).accessDeniedHandler(denied))
             .oauth2ResourceServer(o -> o.authenticationEntryPoint(unauth).accessDeniedHandler(denied)
                 .jwt(j -> j.jwtAuthenticationConverter(jwt -> {

@@ -59,8 +59,9 @@ export function OAuthCallback() {
       try { flow = raw ? JSON.parse(raw) as Flow : undefined } catch { /* A missing browser verifier cannot be exchanged. */ }
       const code = fragment.get('code')
       if (!code || !/^[A-Za-z0-9_-]{43}$/.test(code) || !flow || !/^[A-Za-z0-9_-]{43}$/.test(flow.verifier) || !Number.isFinite(flow.started) || Date.now() - flow.started > 10 * 60 * 1000 || flow.started > Date.now()) throw new Error('登录上下文缺失或已过期，请从本页重新发起 GitHub 登录。')
-      await completeOAuth(code, flow.verifier)
-      return targetPath(flow.target)
+      const user = await completeOAuth(code, flow.verifier)
+      const target = targetPath(flow.target)
+      return user.modules.includes('demo/dashboard') && !target.startsWith('/demo/') ? '/demo/dashboard' : target
       })() }
     }
     pending.current.promise.then(target => { if (active) navigate(target, { replace: true }) }).catch(e => { if (active) setError((e as Error).message) })

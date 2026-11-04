@@ -36,6 +36,8 @@ class GithubOAuthIntegrationTest {
     }
     @Autowired MockMvc mvc;@Autowired JdbcTemplate db;@Autowired ObjectMapper json;@Autowired GithubIdentityService identities;@Autowired OAuthExchangeService exchanges;@Autowired JwtEncoder jwtEncoder;
     @Autowired org.springframework.security.crypto.password.PasswordEncoder passwords;
+    @Autowired DemoCatalogInitializer demoSeed;
+    @Autowired @org.springframework.beans.factory.annotation.Qualifier("requestMappingHandlerMapping") org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping mappings;
     final Set<String> ids=ConcurrentHashMap.newKeySet();
     final Set<Long> passwordUsers=new HashSet<>();
     String id(){String id="77"+ThreadLocalRandom.current().nextLong(1_000_000_000_000_000L,9_999_999_999_999_999L);ids.add(id);return id;}
@@ -119,10 +121,10 @@ class GithubOAuthIntegrationTest {
             var again=identities.login(id,"parallel-renamed",null,null);assertThat(again.roles()).containsExactly("GUEST","TEACHER");
         }finally{pool.shutdownNow();}
     }
-    @Test void defaultGuestReadsInventoryButCannotWriteOrReadPrivateModules()throws Exception {
+    @Test void defaultGuestReadsOnlyDemoAndCannotWriteOrReadFormalModules()throws Exception {
         var data=login(id());String token=data.get("accessToken").asText();
-        for(String path:List.of("/api/materials","/api/stocks","/api/workspace/dashboard"))mvc.perform(get(path).header("Authorization","Bearer "+token)).andExpect(status().isOk());
-        for(String path:List.of("/api/users","/api/settings","/api/issues","/api/returns","/api/stock-transactions","/api/scraps","/api/scraps/1","/api/scraps/attachments/1","/api/reports/funding"))mvc.perform(get(path).header("Authorization","Bearer "+token)).andExpect(status().isForbidden());
+        for(String path:List.of("/api/demo/materials","/api/demo/stocks","/api/demo/dashboard"))mvc.perform(get(path).header("Authorization","Bearer "+token)).andExpect(status().isOk());
+        for(String path:List.of("/api/materials","/api/stocks","/api/workspace/dashboard","/api/users","/api/settings","/api/issues","/api/returns","/api/stock-transactions","/api/scraps","/api/scraps/1","/api/scraps/attachments/1","/api/reports/funding"))mvc.perform(get(path).header("Authorization","Bearer "+token)).andExpect(status().isForbidden());
         var writes=Map.of(
             "/api/material-categories",Map.of("name","Synthetic forbidden"),
             "/api/materials",Map.of("categoryId",999,"name","Synthetic forbidden","unit","piece","unitPrice","1","safeStock","0","status","ACTIVE"),
@@ -130,8 +132,8 @@ class GithubOAuthIntegrationTest {
             "/api/issues",Map.of("idempotencyKey",UUID.randomUUID(),"projectNo","SYNTHETIC","usage","Synthetic forbidden","lines",List.of(Map.of("batchId",999,"quantity","1"))),
             "/api/scraps",Map.of("idempotencyKey",UUID.randomUUID(),"batchId",999,"quantity","1","reason","Synthetic forbidden"));
         for(var write:writes.entrySet())mvc.perform(post(write.getKey()).header("Authorization","Bearer "+token).contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsBytes(write.getValue()))).andExpect(status().isForbidden());
-        mvc.perform(get("/api/workspace/dashboard").header("Authorization","Bearer "+token)).andExpect(jsonPath("$.data.scope").value("PUBLIC")).andExpect(jsonPath("$.data.ranking").isEmpty());
-        mvc.perform(get("/api/workspace/overview").header("Authorization","Bearer "+token)).andExpect(jsonPath("$.data.activities").isEmpty());
+        mvc.perform(get("/api/demo/dashboard").header("Authorization","Bearer "+token)).andExpect(jsonPath("$.data.scope").value("SYNTHETIC_DEMO")).andExpect(jsonPath("$.data.readOnly").value(true));
+        mvc.perform(get("/api/workspace/overview").header("Authorization","Bearer "+token)).andExpect(status().isForbidden());
     }
     @Test void expiredJwtIsRejectedAndStatelessApiDoesNotCreateSession()throws Exception {
         var data=login(id());long user=data.at("/user/id").asLong();Instant now=Instant.now();
@@ -169,5 +171,77 @@ class GithubOAuthIntegrationTest {
     @Test void missingBrowserChallengeCannotStartAuthorization()throws Exception {
         var result=mvc.perform(get("/oauth2/authorization/github")).andReturn();
         assertThat(result.getResponse().getRedirectedUrl()).isNull();assertThat(result.getResponse().getStatus()).isGreaterThanOrEqualTo(400);
+    }
+
+    @Test void allMappedFormalReadEndpointsDenyDemoOnlyAccountsBeforeControllerDispatch()throws Exception {
+        String token=login(id()).get("accessToken").asText(); int checked=0;
+        for(var mapping:mappings.getHandlerMethods().keySet()) {
+            if(!mapping.getMethodsCondition().getMethods().contains(org.springframework.web.bind.annotation.RequestMethod.GET))continue;
+            for(String pattern:mapping.getPatternValues()) {
+                if(!pattern.startsWith("/api/")||pattern.startsWith("/api/demo/")||pattern.equals("/api/auth/me")||pattern.equals("/api/public/system")||pattern.equals("/api/auth/oauth/config"))continue;
+                String path=pattern.replaceAll("\\{[^}]+\\}","1");
+                mvc.perform(get(path).header("Authorization","Bearer "+token)).andExpect(status().isForbidden());checked++;
+            }
+        }
+        assertThat(checked).isGreaterThan(30);
+    }
+    @Test void formalSentinelAndDemoRecordsCoexistWithoutCrossReadsOrWrites()throws Exception {
+        var guest=login(id()); String token=guest.get("accessToken").asText();
+        String sentinel="FORMAL-PRIVATE-SENTINEL-"+UUID.randomUUID();
+        long category=db.queryForObject("INSERT INTO material_category(name) VALUES(?) RETURNING id",Long.class,sentinel);
+        long material=db.queryForObject("INSERT INTO material_item(category_id,name,unit,unit_price) VALUES(?,?,'piece',999.1234) RETURNING id",Long.class,category,sentinel);
+        try {
+            String demo=mvc.perform(get("/api/demo/materials?size=100").header("Authorization","Bearer "+token)).andExpect(status().isOk()).andExpect(jsonPath("$.data.total").value(25)).andReturn().getResponse().getContentAsString();
+            assertThat(demo).doesNotContain(sentinel,"999.1234","passwordHash","operatorName");
+            mvc.perform(get("/api/demo/materials").param("keyword",sentinel).header("Authorization","Bearer "+token)).andExpect(jsonPath("$.data.total").value(0));
+            mvc.perform(get("/api/materials/"+material).header("Authorization","Bearer "+token)).andExpect(status().isForbidden());
+            mvc.perform(get("/api/stocks/"+material+"/batches").header("Authorization","Bearer "+token)).andExpect(status().isForbidden());
+            for(String verb:List.of("POST","PUT","PATCH","DELETE")) {
+                mvc.perform(request(org.springframework.http.HttpMethod.valueOf(verb),"/api/materials/"+material).header("Authorization","Bearer "+token).contentType(MediaType.APPLICATION_JSON).content("{}")).andExpect(status().isForbidden());
+                mvc.perform(request(org.springframework.http.HttpMethod.valueOf(verb),"/api/demo/materials/1").header("Authorization","Bearer "+token).contentType(MediaType.APPLICATION_JSON).content("{}")).andExpect(status().isForbidden());
+            }
+            var business=login(id());long user=business.at("/user/id").asLong();
+            db.update("INSERT INTO sys_user_role(user_id,role_id) SELECT ?,id FROM sys_role WHERE code='ADMIN'",user);
+            mvc.perform(get("/api/materials/"+material).header("Authorization","Bearer "+business.get("accessToken").asText())).andExpect(status().isOk()).andExpect(jsonPath("$.data.name").value(sentinel));
+            assertThat(db.queryForObject("SELECT name FROM material_item WHERE id=?",String.class,material)).isEqualTo(sentinel);
+        } finally {db.update("DELETE FROM material_item WHERE id=?",material);db.update("DELETE FROM material_category WHERE id=?",category);}
+    }
+    @Test void demoSearchPagingBatchesAndMoneyUseOnlySyntheticTables()throws Exception {
+        String token=login(id()).get("accessToken").asText();
+        mvc.perform(get("/api/demo/materials?page=2&size=10").header("Authorization","Bearer "+token)).andExpect(jsonPath("$.data.records.length()").value(10)).andExpect(jsonPath("$.data.records[0].id").value(11)).andExpect(jsonPath("$.data.total").value(25));
+        mvc.perform(get("/api/demo/stocks?stockStatus=ZERO").header("Authorization","Bearer "+token)).andExpect(jsonPath("$.data.total").value(5));
+        mvc.perform(get("/api/demo/materials?keyword=DEMO-001").header("Authorization","Bearer "+token)).andExpect(jsonPath("$.data.total").value(1));
+        mvc.perform(get("/api/demo/materials?categoryId=3").header("Authorization","Bearer "+token)).andExpect(jsonPath("$.data.total").value(5));
+        mvc.perform(get("/api/demo/materials?keyword=%25").header("Authorization","Bearer "+token)).andExpect(jsonPath("$.data.total").value(0));
+        mvc.perform(get("/api/demo/materials/1").header("Authorization","Bearer "+token)).andExpect(jsonPath("$.data.batches.length()").value(2)).andExpect(jsonPath("$.data.unitPrice").value("0.1000")).andExpect(jsonPath("$.data.name").value("示例·金属膜电阻 10kΩ"));
+        mvc.perform(get("/api/demo/batches/11").header("Authorization","Bearer "+token)).andExpect(jsonPath("$.data.events.length()").value(2));
+        var d=json.readTree(mvc.perform(get("/api/demo/dashboard").header("Authorization","Bearer "+token)).andExpect(status().isOk()).andReturn().getResponse().getContentAsString()).get("data");
+        assertThat(d.at("/metrics/materials").asInt()).isEqualTo(25);assertThat(d.at("/metrics/low").asInt()).isEqualTo(5);assertThat(d.at("/metrics/zero").asInt()).isEqualTo(5);
+        for(var value:d.get("values")) {
+            var expected=db.queryForObject("SELECT SUM(b.quantity*b.unit_price) FROM demo_stock_batch b JOIN demo_material m ON m.id=b.material_id WHERE m.currency=?",java.math.BigDecimal.class,value.get("currency").asText());
+            assertThat(new java.math.BigDecimal(value.get("value").asText())).isEqualByComparingTo(expected);
+        }
+        for(String path:List.of("/api/demo/materials?page=0","/api/demo/stocks?size=101","/api/demo/stocks?stockStatus=BAD"))mvc.perform(get(path).header("Authorization","Bearer "+token)).andExpect(status().isBadRequest());
+        mvc.perform(get("/api/demo/batches/999999").header("Authorization","Bearer "+token)).andExpect(status().isNotFound());
+        mvc.perform(get("/api/demo/dashboard")).andExpect(status().isUnauthorized());
+    }
+    @Test void demoInitializerIsIdempotentAndHasNoForeignKeysToFormalData()throws Exception {
+        var before=db.queryForList("SELECT * FROM demo_stock_batch ORDER BY id");
+        demoSeed.run(null);demoSeed.run(null);
+        assertThat(db.queryForObject("SELECT COUNT(*) FROM demo_material",Integer.class)).isEqualTo(25);
+        assertThat(db.queryForObject("SELECT COUNT(*) FROM demo_stock_batch",Integer.class)).isEqualTo(50);
+        assertThat(db.queryForList("SELECT * FROM demo_stock_batch ORDER BY id")).isEqualTo(before);
+        assertThat(db.queryForObject("SELECT COUNT(*) FROM pg_constraint WHERE contype='f' AND conrelid IN ('demo_material'::regclass,'demo_stock_batch'::regclass,'demo_category'::regclass,'demo_stock_event'::regclass) AND confrelid NOT IN ('demo_material'::regclass,'demo_stock_batch'::regclass,'demo_category'::regclass,'demo_stock_event'::regclass)",Integer.class)).isZero();
+    }
+    @Test void administratorCanGrantAndRevokeBusinessRolesOnSameGuestJwt()throws Exception {
+        var admin=login(id());long administrator=admin.at("/user/id").asLong();
+        db.update("INSERT INTO sys_user_role(user_id,role_id) SELECT ?,id FROM sys_role WHERE code='ADMIN'",administrator);
+        var guest=login(id());long user=guest.at("/user/id").asLong();String token=guest.get("accessToken").asText();
+        for(var role:List.of("STUDENT","GUEST")) {
+            mvc.perform(put("/api/users/"+user).header("Authorization","Bearer "+admin.get("accessToken").asText()).contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsBytes(Map.of("displayName","Synthetic visitor","enabled",true,"roles",List.of(role))))).andExpect(status().isOk());
+            mvc.perform(get("/api/materials").header("Authorization","Bearer "+token)).andExpect(status().is(role.equals("STUDENT")?200:403));
+            mvc.perform(get("/api/users").header("Authorization","Bearer "+token)).andExpect(status().isForbidden());
+            mvc.perform(get("/api/auth/me").header("Authorization","Bearer "+token)).andExpect(jsonPath("$.data.roles[0]").value(role));
+        }
     }
 }

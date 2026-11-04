@@ -4,7 +4,7 @@ $ErrorActionPreference = 'Stop'
 if($OAuthMock -and !$E2E){throw 'OAuth mock mode requires the isolated E2E database.'}
 if ($E2E) {
     $port = if ($env:POSTGRES_PORT) { $env:POSTGRES_PORT } else { '5432' }
-    $env:DB_URL = "jdbc:postgresql://127.0.0.1:$port/caizhitong_e2e_test"
+    $env:DB_URL = "jdbc:postgresql://127.0.0.1:$port/caizhitong_v070_demo_e2e_test"
     $env:SERVER_PORT = '8081'
     $env:CORS_ALLOWED_ORIGINS = 'http://127.0.0.1:5180'
     $env:PUBLIC_WEB_URL = 'http://127.0.0.1:5180'

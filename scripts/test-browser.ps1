@@ -55,9 +55,8 @@ try {
     $env:E2E_ISOLATED = '1'
     $env:E2E_OAUTH=if($OAuthMock){'1'}else{'0'}
     if($OAuthMock){
-        $seedPassword=ConvertTo-SecureString $env:DEMO_ADMIN_PASSWORD -AsPlainText -Force
-        & (Join-Path $PSScriptRoot 'seed-public-demo.ps1') -BaseUrl 'http://127.0.0.1:8081' -AdminPassword $seedPassword
-        & (Join-Path $PSScriptRoot 'seed-public-demo.ps1') -BaseUrl 'http://127.0.0.1:8081' -AdminPassword $seedPassword
+        $verificationPassword=ConvertTo-SecureString $env:DEMO_ADMIN_PASSWORD -AsPlainText -Force
+        & (Join-Path $PSScriptRoot 'verify-public-demo.ps1') -BaseUrl 'http://127.0.0.1:8081' -Password $verificationPassword
     }
     if(!$OAuthMock){
     & (Join-Path $PSScriptRoot 'smoke-materials.ps1')
@@ -66,7 +65,7 @@ try {
     & (Join-Path $PSScriptRoot 'smoke-lifecycle.ps1')
     & (Join-Path $PSScriptRoot 'smoke-administration.ps1')
     }
-    Write-Host 'E2E uses caizhitong_e2e_test, backend 8081, frontend 5180. User data is untouched.'
+    Write-Host 'E2E uses caizhitong_v070_demo_e2e_test, backend 8081, frontend 5180. User data is untouched.'
     Push-Location (Join-Path $root 'frontend')
     try {
         & npm.cmd test -- @TestArguments

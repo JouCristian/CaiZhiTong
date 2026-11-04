@@ -5,7 +5,7 @@ import type { LoginResult, User } from './api'
 type AuthContextValue = {
   user: User | null; loading: boolean; error: string; expired: boolean; loggedOut: boolean
   login: (username: string, password: string) => Promise<void>
-  completeOAuth: (code: string, verifier: string) => Promise<void>
+  completeOAuth: (code: string, verifier: string) => Promise<User>
   logout: () => void; restore: () => Promise<void>; refreshProfile: () => Promise<void>
 }
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -60,7 +60,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     acceptLogin(await request<LoginResult>('/api/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) }, false))
   }
   const completeOAuth = useCallback(async (code: string, verifier: string) => {
-    acceptLogin(await request<LoginResult>('/api/auth/oauth/exchange', { method: 'POST', body: JSON.stringify({ code, verifier }) }, false))
+    const data = await request<LoginResult>('/api/auth/oauth/exchange', { method: 'POST', body: JSON.stringify({ code, verifier }) }, false)
+    acceptLogin(data)
+    return data.user
   }, [acceptLogin])
   function logout() { setLoggedOut(true); setToken(null); setUser(null); setExpired(false); setError('') }
   return <AuthContext.Provider value={{ user, loading, error, expired, loggedOut, login, completeOAuth, logout, restore, refreshProfile }}>{children}</AuthContext.Provider>

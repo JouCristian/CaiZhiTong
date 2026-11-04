@@ -2,7 +2,7 @@
 
 面向高校实验室的智慧材料库数字化管理系统。以 React、Spring Boot 和 PostgreSQL 连接材料档案、入库、领用、归还报废、预警与报表，提供可追溯、可本地演示的完整业务闭环。
 
-**开发版本：v0.7.0 · GitHub OAuth 与只读公开体验。** 本分支新增稳定 GitHub 身份关联与安全 JWT 交接；生产 OAuth 尚待账户持有人创建 OAuth App 并完成配置。原 v0.6.0 已完成 Sprint 01–06 人工验收和云端部署，用户名密码登录继续保留。
+**开发版本：v0.7.0 · GitHub OAuth 与只读公开体验。** 本分支新增稳定 GitHub 身份关联与安全 JWT 交接；本功能当前位于 PR，生产 OAuth 启用及真实登录仍待最终确认与上线验收。原 v0.6.0 已完成 Sprint 01–06 人工验收和云端部署，用户名密码登录继续保留。
 
 **在线体验：[打开材智通](https://caizhitong-eight.vercel.app)** · [后端健康检查](https://caizhitong-api.onrender.com/actuator/health)。请使用管理员分配的账户；公网环境不提供本地演示密码。免费后端休眠后首次连接可能需要 2–3 分钟。
 
@@ -17,14 +17,15 @@
 - **完整材料闭环**：分类与档案、入库批次、领用、归还报废、预警及报表真实关联。
 - **数据可追溯**：精确十进制金额、原价格快照、不可变库存流水与持久幂等，重复提交不重复计量。
 - **角色与隐私**：六类角色、服务端实时授权、旧会话撤销；学生仅访问本人私有业务。
-- **GitHub 只读体验**：OAuth2 授权码、state / PKCE、60 秒浏览器绑定交换码；首次登录仅 GUEST，不按邮箱或用户名合并已有账户。需先完成[OAuth App 配置](docs/V0.7.0-GITHUB-OAUTH.md)。
+- **GitHub 只读体验**：OAuth2 授权码、state / PKCE、60 秒浏览器绑定交换码；首次登录仅 GUEST，不按邮箱或用户名合并已有账户。游客仅访问独立 Demo 表与只读 API，正式材料、库存、报表、附件和写入全部拒绝。见[OAuth 配置](docs/V0.7.0-GITHUB-OAUTH.md)与[隔离设计](docs/DEMO-ISOLATION.md)。
 - **统一工作空间**：Apple 风格浅色界面、响应式表单与移动卡片，空状态忠实反映数据库。
 
 ## 功能清单
 
 | 模块 | 已实现能力 |
 | --- | --- |
-| 认证与权限 | BCrypt、JWT、每请求实时授权；停用和密码重置撤销旧会话 |
+| 认证与权限 | BCrypt、JWT、GitHub OAuth；每请求实时授权，停用和密码重置撤销旧会话 |
+| 公开体验 | 25 种合成材料、50 个批次、独立 Demo 工作台 / 材料 / 库存，只读且与正式数据隔离 |
 | 工作台 | 库存价值、本月领用与净消耗、TOP10、趋势、资金占比及授权排行榜 |
 | 材料管理 | 分类树、材料档案、启停归档、服务端筛选分页 |
 | 库存与入库 | 多明细入库、批次余额、价格快照、不可变流水、二维码与标签打印 |
@@ -37,7 +38,7 @@
 
 界面采用独立品牌与 Apple 风格浅色工作空间，统一系统蓝、圆角和克制动效；桌面高效操作，移动端使用卡片、响应式表单与抽屉。不使用 Apple Logo 或品牌资源。
 
-六类角色为游客、学生、实验员、教师、采购员、系统管理员。学生只查看本人领用、归还与个人报表；个人排行榜仅管理员 / 实验员可见。前端导航与后端授权共同生效。
+六类角色为游客、学生、实验员、教师、采购员、系统管理员。学生只查看本人领用、归还与个人报表；个人排行榜仅管理员 / 实验员可见。游客仅进入独立合成演示空间。前端导航与后端授权共同生效。
 
 ## 核心界面
 
@@ -57,6 +58,12 @@
 </details>
 
 更多真实截图：[系统设置](docs/screenshots/sprint06-settings-desktop.png)、[学生工作台](docs/screenshots/sprint06-dashboard-personal-mobile.png)、[数据报表](docs/screenshots/sprint05-reports-desktop.png)、[日常零数据工作台](docs/screenshots/sprint06-dashboard-empty-desktop.png)。业务截图来自真实浏览器与隔离 PostgreSQL 测试业务，日常环境不会自动拥有这些验收数据；零数据截图则来自日常环境。[各轮开发记录](docs/DEVELOPMENT.md)保留完整截图入口。
+
+v0.7.0 独立演示界面（本机隔离 PostgreSQL + Mock OAuth 的真实浏览器截图，尚非生产 OAuth 验收）：
+
+| 演示工作台 | 演示材料与批次 |
+| --- | --- |
+| <img src="docs/screenshots/v070-oauth-guest-desktop.png" alt="独立合成演示工作台" width="420"> | <img src="docs/screenshots/v070-demo-detail-desktop.png" alt="独立演示材料及示例变化" width="420"> |
 
 ## 技术栈与架构
 
@@ -196,7 +203,7 @@ Get-Content ./.env | Select-String '^DEMO_(ADMIN|LAB|STUDENT)_PASSWORD='
 | V4 | 领用单、月度额度、价格快照 |
 | V5 | 归还、报废、附件、预警、邮件、课程 |
 | V6 | 登录时间、会话撤销版本、全局设置 |
-| V7 | GitHub 稳定身份、一次性交换码、OAuth 账户密码入口开关 |
+| V7 | GitHub 稳定身份、一次性交换码、OAuth 密码入口开关、独立 demo_* 表 |
 
 配置模板为根 `.env.example` 与 `frontend/.env.example`。后端必需 DB_URL、DB_USERNAME、DB_PASSWORD、JWT_SECRET；密钥解码至少 32 随机字节。CORS_ALLOWED_ORIGINS 为允许来源，PUBLIC_WEB_URL 用于二维码与邮件链接。
 
@@ -224,12 +231,15 @@ STORAGE_ROOT 默认 `./.runtime/uploads`，相对后端工作目录。支持 JPG
 npm.cmd --prefix frontend run typecheck
 npm.cmd --prefix frontend run build
 ./scripts/test-browser.ps1
+./scripts/test-browser.ps1 -OAuthMock  # 本机 Mock OAuth + 独立 Demo 隔离
 ./scripts/smoke-api.ps1  # 日常后端运行时的只读认证冒烟
 ```
 
-浏览器脚本构建最新生产资源，在独立 `caizhitong_e2e_test` 启动 8081 / 5180，执行真实 API 冒烟及桌面 / 移动测试，结束后只关闭自己的服务。每轮清理专用 E2E 业务夹具和配置，保留账户及迁移历史；参数与 JDBC 检查双重拒绝重置日常库。后端测试只允许 `_test` 数据库。
+浏览器脚本构建最新生产资源，在独立 `caizhitong_v070_demo_e2e_test` 启动 8081 / 5180，执行真实 API 冒烟及桌面 / 移动测试，结束后只关闭自己的服务。每轮清理专用 E2E 业务夹具和配置，保留账户及迁移历史；参数与 JDBC 检查双重拒绝重置日常库。后端测试只允许 `_test` 数据库。
 
 默认使用安装的 Chrome。没有 Chrome 时，前端执行 `npx.cmd playwright install chromium` 并设置 `$env:E2E_BROWSER_CHANNEL='chromium'`。移动端为 Chromium 模拟，不代表真机 Safari。
+
+**v0.7.0 隔离复核（2026-11-04）**：后端 Maven verify **195/195**，原业务桌面 / 手机 **64/64**、OAuth / Demo 专项 **14/14**，TypeScript / 生产构建通过。当前 PR CI 的最终结果见 [v0.7.0 记录](docs/V0.7.0-GITHUB-OAUTH.md)；[隔离设计](docs/DEMO-ISOLATION.md)和[验收清单](docs/V0.7.0-ACCEPTANCE.md)明确区分本地 Mock 与待确认的生产真实 OAuth。
 
 **Sprint 06 最终结果（2026-11-04）：后端 147/147、Chrome 桌面 / 移动模拟 64/64 通过，失败及跳过均为 0。** TypeScript、生产构建、五组隔离真实 HTTP 冒烟、日常健康 / 三账户认证及敏感路径检查通过；启停 / 密码重置另重复 6 次通过。浏览器预览服务使用 Node 24.22.1。原 Sprint 05 的 122 项后端与 56 项浏览器保留回归。修复过程和实际命令见 [Sprint 06](docs/SPRINT-06.md)。报告位于 `backend/target/surefire-reports`、`frontend/playwright-report`，不提交测试日志或令牌。
 
@@ -237,7 +247,7 @@ npm.cmd --prefix frontend run build
 
 **远程 CI 已实测通过**：[首次源码提交的 Actions 运行](https://github.com/JouCristian/CaiZhiTong/actions/runs/41682135755)在 Ubuntu / PostgreSQL 15 上通过 147 项后端测试，前端安装、类型检查和生产构建通过。最新 `main` 状态由顶部 CI 徽章实时展示；完整浏览器 64 项目前在本地 Windows 执行。
 
-**云适配本地验证（2026-11-04）**：后端 **173/173**（新增 26 项）、浏览器 **64/64**、类型检查、生产构建和五组 HTTP 冒烟通过；新增存储使用本机 HTTP 夹具及独立 PostgreSQL 私有 Schema 验证。真实 Supabase / Render 测试按用户要求暂停，不能视为上线成功。CI 新增 Docker 构建与 512 MiB 隔离启动检查，实际结果见工作流。[完整记录](docs/CLOUD-DEPLOYMENT-01.md)。
+**云适配阶段历史验证（2026-11-04）**：后端 **173/173**（新增 26 项）、浏览器 **64/64**、类型检查、生产构建和五组 HTTP 冒烟通过；新增存储使用本机 HTTP 夹具及独立 PostgreSQL 私有 Schema 验证。该阶段当时按用户要求暂停真实平台测试；后续 v0.6.0 已完成云部署，见在线演示及 Cloud Deployment 02 记录。CI 新增 Docker 构建与 512 MiB 隔离启动检查，实际结果见工作流。[完整记录](docs/CLOUD-DEPLOYMENT-01.md)。
 
 ## 开发历程
 

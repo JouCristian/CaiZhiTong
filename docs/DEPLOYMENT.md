@@ -6,7 +6,7 @@
 
 ## 配置入口
 
-v0.7.0 增加可选 GitHub OAuth，默认关闭；准确的 GitHub OAuth App 首页 / 回调及仅后端变量见 [OAuth 部署与验收](V0.7.0-GITHUB-OAUTH.md)。未经账户持有人确认不要创建生产 OAuth App 或写入生产身份。V7 是追加迁移，保留原 V1–V6；下面的 v0.6.0 初始云验收记录不代表 OAuth 已在线验证。
+v0.7.0 增加可选 GitHub OAuth，默认关闭；准确的 GitHub OAuth App 首页 / 回调及仅后端变量见 [OAuth 部署与验收](V0.7.0-GITHUB-OAUTH.md)。OAuth App 已由账户持有人创建，凭据本机安全保存；尚未写入 Render 或启用生产 OAuth。后续合并、配置及真实登录需用户最终确认。V7 是尚未发布的追加迁移，增加 OAuth 身份与独立 Demo 表，保留原 V1–V6；下面的 v0.6.0 初始云验收记录不代表 OAuth 已在线验证。
 
 - 本地继续使用根 [.env.example](../.env.example)，默认 `local` 存储、`public` Schema，原三个开发演示账户逻辑不变。
 - 云配置模板为 [.env.cloud.example](../.env.cloud.example)。真实值应由用户在平台安全环境变量中设置，或保存在忽略的 `.env.cloud`，不要粘贴到聊天、提交 Git 或写进 Docker 构建参数。

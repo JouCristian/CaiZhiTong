@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
-if [[ "${CI:-}" != "true" || ! "${DB_URL:-}" =~ /caizhitong_e2e_test$ ]]; then
-  echo 'OAuth browser CI requires the isolated caizhitong_e2e_test database.' >&2
+if [[ "${CI:-}" != "true" || ! "${DB_URL:-}" =~ /caizhitong_v070_demo_e2e_test$ ]]; then
+  echo 'OAuth browser CI requires the isolated caizhitong_v070_demo_e2e_test database.' >&2
   exit 1
 fi
 mkdir -p .runtime

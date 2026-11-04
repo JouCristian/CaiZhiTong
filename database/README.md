@@ -131,3 +131,10 @@ JUnit 清理在既有测试库保护下显式包含七张业务表（领用单 /
 ## v0.7.0 追加迁移
 
 V7 新增 oauth_identity、oauth_login_exchange 与 sys_user.password_login_enabled。原 V1–V6 保持不变；身份以 provider + 数字 ID 唯一关联，交换码只保存 SHA-256，60 秒过期并一次消费。原密码账户默认继续可用，不修改管理员密码或角色，不删除库存数据。生产执行以已审阅 PR 和 OAuth 配置确认为前提，细节见[开发记录](../docs/V0.7.0-GITHUB-OAUTH.md)。
+
+
+### v0.7.0 独立演示目录
+
+V7 追加 demo_category、demo_material、demo_stock_batch、demo_stock_event；外键只在 Demo 表之间，不关联用户、经费或正式业务。后端启动完成 Flyway 后，以 UTF-8 执行 `backend/src/main/resources/db/demo/seed.sql`，事务锁 + 固定主键 + ON CONFLICT DO NOTHING 支持幂等初始化。25 种材料、50 个批次、100 条示例变化不进入正式报表、库存和预警。已有记录不重置，不清空任何正式表。
+
+本机曾执行过早期未发布 V7 的测试库应使用全新 *_test 数据库；禁止通过 repair 或修改 V1–V6 掩盖 checksum 差异。生产仍为 V6，V6 → V7 保留管理员、档案与库存的测试在随机隔离 Schema 中完成。详见[隔离设计](../docs/DEMO-ISOLATION.md)。

@@ -15,7 +15,22 @@
 
 OAuth 身份仅使用 GitHub 数字 ID，永不按邮箱或 handle 自动关联。新建用户 password_login_enabled=false，角色仅 GUEST；原密码用户无变化，管理员明确重置后可以开启 OAuth 用户的密码入口。GET me / LoginResponse.user 新增可选 githubLogin / avatarUrl，旧字段兼容。
 
-GUEST 增加 inventory 模块元数据与库存页面，但 `/api/stock-transactions` 仍只允许 ADMIN / LAB_TECH / TEACHER / PURCHASER。GUEST 批次 JSON 不包含 createdBy / operatorName / remark / orderId / orderNo / lineNo；工作台 overview.activities 为空，dashboard 仅 PUBLIC 统计。用户 / 设置、领用、报表、照片与所有业务写入继续按原后端角色校验，不能自行提权。
+GUEST-only 账户仅允许读取本人 `/api/auth/me` 和独立 `/api/demo/**`，所有正式 `/api/**` 在统一 SecurityFilterChain 入口返回 403，包括材料、库存、工作台、兼容接口、二维码、下载、报表、照片及所有写入；无需等到 Controller 参数解析。公开 login / OAuth config / exchange / system 元数据沿用原规则。混合角色只要持有有效正式角色，仍按原业务授权判断；每个请求从数据库取最新角色，管理员升级 STUDENT 或撤回到 GUEST 后同一 JWT 的下一请求即生效。
+
+### 独立只读 Demo API
+
+下列 GET 均要求有效 JWT；未认证 401。GUEST 导航仅 demo/dashboard、demo/materials、demo/stocks。正式角色也可认证读取 Demo，但原工作台与导航不变。`/api/demo/**` 所有非 GET 请求统一 403，无任何写入 Controller。
+
+| 路径 | 返回 / 查询 |
+| --- | --- |
+| `/api/demo/dashboard` | scope=SYNTHETIC_DEMO、readOnly=true、材料 / 有库存 / 低库存 / 零库存数量、批次数、按币种分开的库存价值、分类分布 |
+| `/api/demo/categories` | 独立 Demo 分类 id / name |
+| `/api/demo/materials` | records / total / page / size；page≥1，size 1–100，keyword≤100（名称 / 编码 / 型号），categoryId，stockStatus=NORMAL / LOW / ZERO；服务端筛选分页，按 ID 稳定排序 |
+| `/api/demo/stocks` | 同一独立合成目录的库存汇总分页，查询参数同上 |
+| `/api/demo/materials/{id}` | 完整合成档案与该 Demo 材料批次 |
+| `/api/demo/batches/{id}` | 合成批次与示例 IN / OUT 变化，不含关联人、正式单据或附件 |
+
+金额 / 数量为精确十进制字符串。非法查询 400，Demo ID 不存在 404。查询只连接 demo_* 表，ID 即使与正式表相同也不会回退查询正式记录。初始化及隔离依据见 [设计说明](DEMO-ISOLATION.md)。
 
 真实 GitHub App 的生产配置、临时会话与云平台验证边界见 [v0.7.0 记录](V0.7.0-GITHUB-OAUTH.md)。
 
@@ -34,7 +49,7 @@ GUEST 增加 inventory 模块元数据与库存页面，但 `/api/stock-transact
 | GET `/api/settings` | ADMIN，配置、revision、业务时区锁定状态、邮件准备状态和最近通知 |
 | PUT `/api/settings` | ADMIN，完整保存全局业务设置，revision 冲突 409 |
 | GET `/api/public/system` | 公开安全元数据，仅 systemName / systemDescription / businessZone / version，no-store |
-| GET `/api/workspace/dashboard` | 登录用户，服务端决定 PUBLIC / PERSONAL / AGGREGATE / ALL 统计范围 |
+| GET `/api/workspace/dashboard` | 正式业务角色，服务端决定 PERSONAL / AGGREGATE / ALL 统计范围；GUEST-only 403 |
 
 创建请求示例（示例密码必须由本地开发者替换，不记录或返回）：
 
@@ -54,7 +69,7 @@ GUEST 增加 inventory 模块元数据与库存页面，但 `/api/stock-transact
 
 工作台保留旧 `/api/workspace/overview` 契约。新 dashboard 返回 scope、from / to、businessZone、stockValues（按币种）、lowStockCount、monthTotals（按币种与单位）、topMaterials（每组 TOP10）、trend（按实际日）、funding（label / currency / amount / percentage）、ranking、canViewPeople、notes。数量 / 金额为十进制字符串。净消耗沿用 Sprint 05 逻辑，资金占比明确使用领用金额（未扣归还），fundingDimension 标明 PROJECT / CATEGORY，仓库报废单列。
 
-ADMIN / LAB_TECH 可看全量及个人排行；TEACHER / PURCHASER 可看授权汇总，但资金占比仅按材料分类，不返回受限项目明细或排行身份；STUDENT 的业务统计强制本人，不接受任意 userId；GUEST 仅公开库存价值与预警计数，其余数组为空。普通角色不能通过隐藏按钮或请求参数扩展统计范围。
+ADMIN / LAB_TECH 可看全量及个人排行；TEACHER / PURCHASER 可看授权汇总，但资金占比仅按材料分类，不返回受限项目明细或排行身份；STUDENT 的业务统计强制本人，不接受任意 userId；v0.7.0 起 GUEST-only 完全拒绝正式工作台统计，改用独立 Demo 工作台。普通角色不能通过隐藏按钮或请求参数扩展统计范围。
 
 ## Sprint 05 · 归还、报废、预警与报表
 
@@ -161,12 +176,12 @@ JWT 使用 HS256 签名；密钥来自环境变量，启动时检查 Base64 与�
 
 ## 角色访问矩阵
 
-✓ 表示本轮可以访问该导航 / 开发状态页，不代表业务已上线。
+下表为正式业务导航；v0.7.0 GUEST-only 仅有独立演示工作台、演示材料和演示库存。
 
 | 页面 | 游客 | 学生 | 实验员 | 教师 | 采购员 | 管理员 |
 | --- | --- | --- | --- | --- | --- | --- |
-| 工作台 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| 材料管理 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| 工作台 |  | ✓ | ✓ | ✓ | ✓ | ✓ |
+| 材料管理 |  | ✓ | ✓ | ✓ | ✓ | ✓ |
 | 库存管理 |  |  | ✓ | ✓ | ✓ | ✓ |
 | 入库管理 |  |  | ✓ |  | ✓ | ✓ |
 | 领用管理 |  | ✓ | ✓ | ✓ |  | ✓ |
@@ -285,7 +300,7 @@ JWT 存于 sessionStorage，刷新时通过 /me 验证。临时网络错误保�
 | GET /api/inbound-orders/{id} | 同上；order、lines、totals（分币种） |
 | POST /api/inbound-orders | 仅 ADMIN / LAB_TECH；返回持久化后的完整详情 |
 
-保留原菜单矩阵，学生 / 游客从材料详情及二维码路由只读访问库存，采购员不能入库。全部要求 JWT，未登录 401，无权限 403。
+保留原菜单矩阵，学生从材料详情及二维码路由只读访问库存；v0.7.0 起游客对正式库存及二维码接口一律 403，采购员不能入库。全部要求 JWT，未登录 401，无权限 403。
 
 ### 查询参数
 

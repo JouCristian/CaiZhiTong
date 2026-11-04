@@ -4,7 +4,7 @@ $ErrorActionPreference = 'Stop'
 if ($env:SPRING_PROFILES_ACTIVE -ne 'dev' -or $env:DEMO_ENABLED -ne 'true') { throw 'Demo data is only available in the explicitly enabled dev environment.' }
 if ($E2E) {
     $port = if ($env:POSTGRES_PORT) { $env:POSTGRES_PORT } else { '5432' }
-    $env:DB_URL = "jdbc:postgresql://127.0.0.1:$port/caizhitong_e2e_test"
+    $env:DB_URL = "jdbc:postgresql://127.0.0.1:$port/caizhitong_v070_demo_e2e_test"
 }
 $root = Split-Path $PSScriptRoot -Parent
 $driver = Join-Path $root '.tools/postgresql-42.7.8.jar'
