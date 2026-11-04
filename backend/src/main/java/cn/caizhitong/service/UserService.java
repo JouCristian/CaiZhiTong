@@ -20,7 +20,7 @@ public class UserService {
     public UserPrincipal login(String username, String password) {
         SysUser user=mapper.selectOne(Wrappers.<SysUser>lambdaQuery().eq(SysUser::getUsername, username));
         boolean matches=passwords.matches(password, user == null ? dummyHash : user.getPasswordHash());
-        if (user == null || !matches || !Boolean.TRUE.equals(user.getEnabled()))
+        if (user == null || !matches || Boolean.FALSE.equals(user.getPasswordLoginEnabled()) || !Boolean.TRUE.equals(user.getEnabled()))
             throw new BadCredentialsException("用户名或密码错误");
         mapper.recordLogin(user.getId());
         return principal(user);
@@ -32,7 +32,9 @@ public class UserService {
     }
     private UserPrincipal principal(SysUser user) { return new UserPrincipal(user, mapper.findRoles(user.getId())); }
     public UserView view(UserPrincipal p) {
-        return new UserView(p.user().getId(), p.getName(), p.user().getDisplayName(), p.roles(), access.modules(p.roles()));
+        var profile=mapper.githubProfile(p.user().getId());
+        return new UserView(p.user().getId(), p.getName(), p.user().getDisplayName(), p.roles(), access.modules(p.roles()),
+            profile==null?null:profile.get("provider_login"),profile==null?null:profile.get("avatar_url"));
     }
 }
 

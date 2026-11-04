@@ -40,6 +40,15 @@ jobs:
         working-directory: frontend
       - run: npm run typecheck && npm run build
         working-directory: frontend
+      - name: Install isolated OAuth browser runtime
+        run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      - name: Create isolated OAuth browser database
+        run: docker exec "${{ job.services.postgres.id }}" psql -U caizhitong -d postgres -c 'CREATE DATABASE caizhitong_v070_demo_e2e_test'
+      - name: Mock GitHub OAuth browser flow (desktop and mobile)
+        run: bash scripts/test-oauth-ci.sh
+        env:
+          DB_URL: jdbc:postgresql://localhost:5432/caizhitong_v070_demo_e2e_test
       - name: Build backend Docker image
         run: docker build --tag caizhitong-backend:ci ./backend
       - name: Smoke Docker runtime within 512 MiB
@@ -50,6 +59,10 @@ jobs:
             -e DB_URL -e DB_USERNAME -e DB_PASSWORD -e JWT_SECRET \
             -e SERVER_PORT=18080 -e DEMO_ENABLED=false -e BOOTSTRAP_ADMIN_ENABLED=false \
             -e STORAGE_MODE=local -e ALERT_SCAN_ENABLED=false -e MAIL_DISPATCH_ENABLED=false \
+            -e GITHUB_OAUTH_ENABLED=true -e GITHUB_CLIENT_ID=ci-synthetic-client \
+            -e GITHUB_CLIENT_SECRET=ci-synthetic-oauth-secret \
+            -e GITHUB_REDIRECT_URI=https://backend.example.test/login/oauth2/code/github \
+            -e PUBLIC_WEB_URL=https://frontend.example.test \
             caizhitong-backend:ci
           trap 'docker rm -f caizhitong-ci-runtime >/dev/null 2>&1 || true' EXIT
           for attempt in $(seq 1 90); do
@@ -62,5 +75,21 @@ jobs:
           done
           python3 -c 'import json; assert json.load(open("/tmp/caizhitong-health.json"))["status"] == "UP"'
           test "$(curl --silent -o /dev/null -w '%{http_code}' http://127.0.0.1:18080/api/auth/me)" = 401
+          test "$(curl --silent -o /dev/null -w '%{http_code}' http://127.0.0.1:18080/api/demo/dashboard)" = 401
+          curl --fail --silent http://127.0.0.1:18080/api/auth/oauth/config > /tmp/caizhitong-oauth.json
+          python3 -c 'import json; assert json.load(open("/tmp/caizhitong-oauth.json"))["data"]["githubEnabled"] is True'
+          curl --silent --dump-header /tmp/caizhitong-oauth-headers --output /dev/null \
+            'http://127.0.0.1:18080/oauth2/authorization/github?challenge=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+          python3 - <<'PY'
+          from urllib.parse import urlparse, parse_qs
+          headers = open('/tmp/caizhitong-oauth-headers').read().splitlines()
+          assert '302' in headers[0]
+          location = next(h.split(': ', 1)[1] for h in headers if h.lower().startswith('location:'))
+          url = urlparse(location)
+          params = parse_qs(url.query)
+          assert url.scheme == 'https' and url.netloc == 'github.com'
+          assert params['redirect_uri'] == ['https://backend.example.test/login/oauth2/code/github']
+          assert params['state'] and params['code_challenge_method'] == ['S256']
+          PY
           test "$(docker inspect -f '{{.State.OOMKilled}}/{{.RestartCount}}' caizhitong-ci-runtime)" = false/0
           docker stats --no-stream --format '{{.MemUsage}}' caizhitong-ci-runtime

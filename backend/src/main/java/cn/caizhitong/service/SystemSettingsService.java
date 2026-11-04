@@ -11,7 +11,7 @@ import static cn.caizhitong.mapper.OperationsMapper.*;
 @Service
 public class SystemSettingsService {
  private final OperationsMapper db;private final Clock clock;private final MailSettings mail;private final String fallbackZone,version;
- public SystemSettingsService(OperationsMapper db,Clock clock,MailSettings mail,@Value("${app.business-zone:Asia/Shanghai}")String fallbackZone,@Value("${app.version:0.6.0}")String version){this.db=db;this.clock=clock;this.mail=mail;this.fallbackZone=fallbackZone;this.version=version;}
+ public SystemSettingsService(OperationsMapper db,Clock clock,MailSettings mail,@Value("${app.business-zone:Asia/Shanghai}")String fallbackZone,@Value("${app.version:0.7.0}")String version){this.db=db;this.clock=clock;this.mail=mail;this.fallbackZone=fallbackZone;this.version=version;}
  private Map<String,Object> row(){return db.one("SELECT * FROM app_settings WHERE id=1");}
  private ZoneId zone(Map<String,Object> row){return ZoneId.of(row.get("business_zone")==null?fallbackZone:text(row,"business_zone"));}
  public ZoneId zone(){return zone(row());}

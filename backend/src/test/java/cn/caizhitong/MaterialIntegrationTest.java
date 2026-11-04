@@ -167,8 +167,8 @@ class MaterialIntegrationTest {
     @ParameterizedTest @ValueSource(strings={"STUDENT","TEACHER","PURCHASER","GUEST"})
     void readonlyRolesCanReadButCannotWrite(String role) throws Exception {
         long c=category("只读角色分类",null); JsonNode row=create(c,"只读角色材料"); long id=row.get("id").asLong();
-        call("GET","/api/materials/"+id,role,null).andExpect(status().isOk());
-        call("GET","/api/material-categories/tree",role,null).andExpect(status().isOk());
+        call("GET","/api/materials/"+id,role,null).andExpect(status().is(role.equals("GUEST")?403:200));
+        call("GET","/api/material-categories/tree",role,null).andExpect(status().is(role.equals("GUEST")?403:200));
         call("POST","/api/materials",role,input(c,"越权材料")).andExpect(status().isForbidden());
         call("PUT","/api/materials/"+id,role,input(c,"越权编辑")).andExpect(status().isForbidden());
         call("PATCH","/api/materials/"+id+"/status",role,Map.of("status","DISABLED")).andExpect(status().isForbidden());

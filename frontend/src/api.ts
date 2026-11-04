@@ -4,6 +4,8 @@ export interface User {
   displayName: string
   roles: string[]
   modules: string[]
+  githubLogin?: string
+  avatarUrl?: string
 }
 export interface LoginResult {
   accessToken: string
@@ -43,6 +45,7 @@ export class ApiError extends Error {
   }
 }
 const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
+export function apiUrl(path: string) { return base + path }
 // Free hosting may need several minutes to wake after inactivity.
 const configuredTimeout = Number(import.meta.env.VITE_API_TIMEOUT_MS)
 const requestTimeout = Number.isFinite(configuredTimeout) && configuredTimeout >= 12000 && configuredTimeout <= 300000

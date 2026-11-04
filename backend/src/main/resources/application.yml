@@ -1,5 +1,12 @@
 server:
   port: ${SERVER_PORT:8080}
+  servlet:
+    session:
+      timeout: 10m
+      cookie:
+        name: CZT_OAUTH_SESSION
+        http-only: true
+        same-site: lax
   error:
     include-message: never
 spring:
@@ -41,6 +48,13 @@ management:
     health:
       show-details: never
 app:
+  version: 0.7.0
+  oauth:
+    github:
+      enabled: ${GITHUB_OAUTH_ENABLED:false}
+      client-id: ${GITHUB_CLIENT_ID:}
+      client-secret: ${GITHUB_CLIENT_SECRET:}
+      redirect-uri: ${GITHUB_REDIRECT_URI:}
   storage:
     mode: ${STORAGE_MODE:local}
     root: ${STORAGE_ROOT:./.runtime/uploads}

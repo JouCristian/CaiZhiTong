@@ -96,11 +96,47 @@ class CloudAdaptationIntegrationTest {
     @Test void originalSixMigrationsCreatePrivateSchemaUsingIndependentConnection() {
         assertThat(storage).isInstanceOf(SupabaseAttachmentStorage.class);
         assertThat(flyway.getConfiguration().getDataSource()).isNotSameAs(datasource);
-        assertThat(Arrays.stream(flyway.info().applied()).filter(i->i.getVersion()!=null).map(i->i.getVersion().getVersion()).toList()).containsExactly("1","2","3","4","5","6");
+        assertThat(Arrays.stream(flyway.info().applied()).filter(i->i.getVersion()!=null).map(i->i.getVersion().getVersion()).toList()).containsExactly("1","2","3","4","5","6","7");
         assertThat(flyway.validateWithResult().validationSuccessful).isTrue();
         assertThat(db.count("SELECT count(*) FROM sys_role")).isEqualTo(6);
         assertThat(db.count("SELECT count(*) FROM information_schema.tables WHERE table_schema=? AND table_name='stock_attachment'",SCHEMA)).isEqualTo(1);
         assertThat(db.count("SELECT count(*) FROM pg_namespace n CROSS JOIN LATERAL aclexplode(COALESCE(n.nspacl,acldefault('n',n.nspowner))) a WHERE n.nspname=? AND a.grantee=0 AND a.privilege_type='USAGE'",SCHEMA)).isZero();
+    }
+    @Test void v6UpgradePreservesExistingAdministratorMaterialAndStock()throws Exception {
+        assertThat(jdbc.queryForObject("SELECT current_database()",String.class)).endsWith("_test");
+        String schema="oauth_upgrade_"+UUID.randomUUID().toString().replace("-","")+"_test";
+        var source=flyway.getConfiguration().getDataSource();
+        try {
+            Flyway.configure().dataSource(source).schemas(schema).defaultSchema(schema).target("6").cleanDisabled(true).load().migrate();
+            try(var connection=source.getConnection()) {
+                connection.setSchema(schema);
+                var isolated=new JdbcTemplate(new org.springframework.jdbc.datasource.SingleConnectionDataSource(connection,true));
+                long user=isolated.queryForObject("INSERT INTO sys_user(username,display_name,password_hash) VALUES('upgrade_synthetic_admin','Synthetic admin',?) RETURNING id",Long.class,passwords.encode(PASSWORD));
+                isolated.update("INSERT INTO sys_user_role(user_id,role_id) SELECT ?,id FROM sys_role WHERE code='ADMIN'",user);
+                long category=isolated.queryForObject("INSERT INTO material_category(name) VALUES('Formal synthetic upgrade fixture') RETURNING id",Long.class);
+                long item=isolated.queryForObject("INSERT INTO material_item(category_id,name,unit,unit_price) VALUES(?,'Formal upgrade sentinel','piece',12.3456) RETURNING id",Long.class,category);
+                long order=isolated.queryForObject("INSERT INTO inbound_order(idempotency_key,request_hash,created_by,received_at) VALUES(?,'synthetic-fixture',?,CURRENT_TIMESTAMP) RETURNING id",Long.class,UUID.randomUUID(),user);
+                long line=isolated.queryForObject("INSERT INTO inbound_order_line(order_id,line_no,item_id,quantity,unit_price_snapshot,currency_snapshot,item_code_snapshot,item_name_snapshot,unit_snapshot) SELECT ?,1,id,7,unit_price,currency,material_code,name,unit FROM material_item WHERE id=? RETURNING id",Long.class,order,item);
+                isolated.update("INSERT INTO stock_batch(item_id,inbound_line_id,initial_quantity,quantity,unit_price_snapshot,received_at,created_by) VALUES(?,?,7,7,12.3456,CURRENT_TIMESTAMP,?)",item,line,user);
+                var originalMaterial=isolated.queryForList("SELECT * FROM material_item");
+                var originalStock=isolated.queryForList("SELECT * FROM stock_batch");
+                String hash=isolated.queryForObject("SELECT password_hash FROM sys_user WHERE id=?",String.class,user);
+                var upgraded=Flyway.configure().dataSource(source).schemas(schema).defaultSchema(schema).cleanDisabled(true).load();
+                upgraded.migrate();assertThat(upgraded.validateWithResult().validationSuccessful).isTrue();
+                assertThat(isolated.queryForList("SELECT * FROM material_item")).isEqualTo(originalMaterial);
+                assertThat(isolated.queryForList("SELECT * FROM stock_batch")).isEqualTo(originalStock);
+                assertThat(isolated.queryForObject("SELECT password_hash FROM sys_user WHERE id=?",String.class,user)).isEqualTo(hash);
+                assertThat(isolated.queryForObject("SELECT password_login_enabled FROM sys_user WHERE id=?",Boolean.class,user)).isTrue();
+                assertThat(isolated.queryForObject("SELECT COUNT(*) FROM oauth_identity",Integer.class)).isZero();
+                var populator=new org.springframework.jdbc.datasource.init.ResourceDatabasePopulator(new org.springframework.core.io.ClassPathResource("db/demo/seed.sql"));
+                populator.setSqlScriptEncoding("UTF-8");populator.execute(isolated.getDataSource());populator.execute(isolated.getDataSource());
+                assertThat(isolated.queryForObject("SELECT COUNT(*) FROM demo_material",Integer.class)).isEqualTo(25);
+                assertThat(isolated.queryForList("SELECT * FROM stock_batch")).isEqualTo(originalStock);
+            }
+        } finally {
+            // This randomly named test schema was created above, only inside an isolated *_test DB.
+            jdbc.execute("DROP SCHEMA \""+schema+"\" CASCADE");
+        }
     }
     @Test void initialAdminIsHashedCanLoginAndMissingCredentialsDoNotResetIt() {
         String hash=jdbc.queryForObject("SELECT password_hash FROM sys_user WHERE username='cloud_admin'",String.class);

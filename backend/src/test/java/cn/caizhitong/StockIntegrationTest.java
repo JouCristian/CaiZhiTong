@@ -150,8 +150,8 @@ class StockIntegrationTest {
   long id=item("只读库存","CNY");var input=order(line(id,"1"));
   call("POST","/api/inbound-orders",role,input).andExpect(status().isForbidden());
   String code=inbound(input,"ADMIN").at("/lines/0/batchCode").asText();
-  call("GET","/api/stock-batches/"+code,role,null).andExpect(status().isOk());
-  call("GET","/api/stocks?itemId="+id,role,null).andExpect(status().isOk());
+  call("GET","/api/stock-batches/"+code,role,null).andExpect(status().is(role.equals("GUEST")?403:200));
+  call("GET","/api/stocks?itemId="+id,role,null).andExpect(status().is(role.equals("GUEST")?403:200));
  }
  @Test void qrPngDecodesToConfiguredProtectedBatchRoute()throws Exception{
   long id=item("二维码材料","CNY");String code=inbound(order(line(id,"1")),"ADMIN").at("/lines/0/batchCode").asText();

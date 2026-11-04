@@ -116,8 +116,6 @@ function MaterialSelect({
   return (
     <Select
       aria-label="选择入库材料"
-      styles={{ popup: { root: { zIndex: 1200 } } }}
-      getPopupContainer={(trigger) => trigger.parentElement!}
       virtual={false}
       showSearch
       disabled={disabled}

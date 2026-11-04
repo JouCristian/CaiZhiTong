@@ -4,6 +4,15 @@ import { mkdirSync } from 'node:fs'
 import { resolve } from 'node:path'
 import type { OrderDetail } from '../src/stock/types'
 test.skip(process.env.E2E_ISOLATED !== '1', '库存写入仅在隔离数据库运行')
+test.afterEach(async ({ page }, info) => {
+  if (info.status === info.expectedStatus) return
+  // Report layering only, never form values, cookies or session tokens.
+  const layers = await page.evaluate(() => Array.from(document.querySelectorAll('.ant-drawer, .ant-drawer-mask, .ant-select-dropdown')).map(node => {
+    const style = getComputedStyle(node), rect = node.getBoundingClientRect()
+    return { className: node.className, zIndex: style.zIndex, display: style.display, visibility: style.visibility, pointerEvents: style.pointerEvents, x: rect.x, y: rect.y, width: rect.width, height: rect.height }
+  })).catch(() => [])
+  console.error('Stock overlay diagnostics:', JSON.stringify(layers))
+})
 async function login(page: Page, username = 'admin', target = '/dashboard') {
   await page.goto('/login')
   await page.getByLabel('用户名', { exact: true }).fill(username)
@@ -55,9 +64,12 @@ async function fixture(request: APIRequestContext, tag: string) {
 }
 async function choose(page: Page, name: string, index = 0) {
   const select = page.getByRole('combobox', { name: '选择入库材料' }).nth(index)
+  await select.click()
   await select.fill(name)
+  const controlledList = await select.getAttribute('aria-controls')
+  expect(controlledList).toBeTruthy()
   await page
-    .locator('.ant-select-dropdown:visible')
+    .locator('[id="' + controlledList + '"]')
     .getByRole('option')
     .filter({ hasText: name })
     .click({ timeout: 10000 })

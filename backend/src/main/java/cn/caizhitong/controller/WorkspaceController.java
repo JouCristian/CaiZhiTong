@@ -14,9 +14,9 @@ public class WorkspaceController {
     public ApiResponse<?> dashboard(@org.springframework.security.core.annotation.AuthenticationPrincipal cn.caizhitong.security.UserPrincipal user){return ApiResponse.ok(reports.dashboard(user));}
     @GetMapping("/overview")
     @PreAuthorize("@moduleAccess.canAccess(authentication, 'dashboard')")
-    public ApiResponse<Map<String,Object>> overview() {
+    public ApiResponse<Map<String,Object>> overview(@org.springframework.security.core.annotation.AuthenticationPrincipal cn.caizhitong.security.UserPrincipal user) {
         var summary=stocks.summary();
-        return ApiResponse.ok(Map.of("businessAvailable",true,"metrics",Map.of("materials",materials.total(),"stock",summary.stockedMaterialCount(),"pending",0,"alerts",summary.lowStockCount()),"activities",stocks.activities()));
+        return ApiResponse.ok(Map.of("businessAvailable",true,"metrics",Map.of("materials",materials.total(),"stock",summary.stockedMaterialCount(),"pending",0,"alerts",summary.lowStockCount()),"activities",user.roles().stream().allMatch("GUEST"::equals)?List.of():stocks.activities()));
     }
     // Access metadata only. No material/inventory business endpoints are implemented in Sprint 01.
     @GetMapping("/modules/{module}")

@@ -20,7 +20,7 @@ public class StockController {
  public ResponseEntity<byte[]> qr(@PathVariable String code){
   return ResponseEntity.ok().cacheControl(CacheControl.noStore()).header(HttpHeaders.CONTENT_DISPOSITION,"inline; filename=\""+code.replaceAll("[^A-Za-z0-9-]","")+".png\"").body(service.png(code));
  }
- @GetMapping("/api/stock-transactions") @PreAuthorize("@moduleAccess.canAccess(authentication, 'inventory')")
+ @GetMapping("/api/stock-transactions") @PreAuthorize("hasAnyRole('ADMIN','LAB_TECH','TEACHER','PURCHASER')")
  public ApiResponse<PageResult<TransactionRow>> transactions(@Valid @ModelAttribute StockQuery q,@AuthenticationPrincipal UserPrincipal user){return ApiResponse.ok(service.transactions(q,user));}
 }
 

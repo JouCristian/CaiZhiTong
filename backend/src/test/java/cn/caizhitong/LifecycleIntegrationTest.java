@@ -151,7 +151,7 @@ class LifecycleIntegrationTest {
   var r=data(call("GET",report("semester")+"&size=1","ADMIN",null));assertThat(r.get("total").asInt()).isEqualTo(2);assertThat(r.get("records").size()).isEqualTo(1);assertThat(r.get("totals").size()).isEqualTo(2);var filtered=data(call("GET",report("semester")+"&course="+java.net.URLEncoder.encode("电子技术",java.nio.charset.StandardCharsets.UTF_8),"ADMIN",null));assertThat(filtered.get("total").asInt()).isEqualTo(1);assertThat(new java.math.BigDecimal(filtered.at("/records/0/scrapQuantity").asText())).isZero();
  }
  @Test void allSixExportsAreLegalMatchPreviewAndSaveActualExamples()throws Exception{
-  var i=fixture("20");returned(i,"5");var dir=Path.of("../docs/examples/sprint05");Files.createDirectories(dir);
+  var i=fixture("20");returned(i,"5");var dir=Path.of("target/test-artifacts/sprint05");Files.createDirectories(dir);
   for(String type:List.of("semester","funding","personal")){
    String suffix=type.equals("personal")?"&userId="+userIds.get("STUDENT"):"";var preview=data(call("GET",report(type)+suffix,"ADMIN",null));assertThat(preview.get("total").asInt()).isEqualTo(1);
    for(String format:List.of("xlsx","pdf")){

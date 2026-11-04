@@ -13,7 +13,7 @@ RUN groupadd --gid 10001 app \
     && useradd --uid 10001 --gid app --no-create-home app \
     && mkdir -p /app/uploads && chown -R app:app /app
 WORKDIR /app
-COPY --from=build /build/target/backend-0.6.0.jar app.jar
+COPY --from=build /build/target/backend-0.7.0.jar app.jar
 ENV STORAGE_ROOT=/app/uploads \
     DEMO_ENABLED=false \
     JAVA_TOOL_OPTIONS="-Djava.awt.headless=true -XX:MaxRAMPercentage=40 -XX:MaxMetaspaceSize=128m -XX:ReservedCodeCacheSize=48m -XX:MaxDirectMemorySize=24m -XX:+UseSerialGC -Xss512k -XX:+ExitOnOutOfMemoryError"

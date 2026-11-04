@@ -6,6 +6,8 @@
 
 ## 配置入口
 
+v0.7.0 增加可选 GitHub OAuth，默认关闭；准确的 GitHub OAuth App 首页 / 回调及仅后端变量见 [OAuth 部署与验收](V0.7.0-GITHUB-OAUTH.md)。OAuth App 已由账户持有人创建，凭据本机安全保存；尚未写入 Render 或启用生产 OAuth。后续合并、配置及真实登录需用户最终确认。V7 是尚未发布的追加迁移，增加 OAuth 身份与独立 Demo 表，保留原 V1–V6；下面的 v0.6.0 初始云验收记录不代表 OAuth 已在线验证。
+
 - 本地继续使用根 [.env.example](../.env.example)，默认 `local` 存储、`public` Schema，原三个开发演示账户逻辑不变。
 - 云配置模板为 [.env.cloud.example](../.env.cloud.example)。真实值应由用户在平台安全环境变量中设置，或保存在忽略的 `.env.cloud`，不要粘贴到聊天、提交 Git 或写进 Docker 构建参数。
 - `SPRING_PROFILES_ACTIVE=cloud` 启用云保护；仅复制模板不会自动部署。现有 `load-env.ps1` 只加载本地 `.env`，不会暗中切换至云库。
@@ -33,7 +35,7 @@ JDBC URL 不嵌入用户名或密码。`cloud` profile 在迁移前拒绝未启�
 
 云端默认仅在 `caizhitong` Schema 创建业务表与 Flyway 历史，业务连接也使用同一 Schema；允许以 `caizhitong_` 开头的受限自定义名称。运行 Schema 与迁移 Schema 必须相同，迁移 Schema 只能有一个。不会向 Supabase 的 auth、storage、extensions 或 public Schema 写入业务表。
 
-V1–V6 不改写、不新增版本，仅在新私有 Schema 原样执行。始终启用 validate-on-migrate、禁用 clean；不使用 repair、关闭校验或删平台对象来掩盖问题。新建 Schema 时 Flyway 可能额外记录一条 Schema 创建标记，它不是 V7。
+v0.6.0 初始部署原样执行 V1–V6，v0.7.0 仅追加 V7，不改写旧脚本。始终启用 validate-on-migrate、禁用 clean；不使用 repair、关闭校验或删平台对象来掩盖问题。新建 Schema 时的非版本创建标记不计入迁移版本。
 
 ### Data API 防护
 
@@ -73,7 +75,7 @@ V1–V6 不改写、不新增版本，仅在新私有 Schema 原样执行。始�
 现有服务名 caizhitong-api，Free，Singapore。不要重复创建；收费磁盘、套餐或资源升级需账户持有人确认。
 
 - 仓库 `JouCristian/CaiZhiTong`，分支 main，Runtime Docker。
-- Docker build context `backend`；Dockerfile 使用控制台要求的仓库相对路径 `backend/Dockerfile`。本地等价命令：`docker build -t caizhitong-backend:0.6.0 ./backend`。
+- Docker build context `backend`；Dockerfile 使用控制台要求的仓库相对路径 `backend/Dockerfile`。本地等价命令：`docker build -t caizhitong-backend:0.7.0 ./backend`。
 - 健康检查 `/actuator/health`。cloud profile 优先 SERVER_PORT，其次平台 PORT，默认 10000；不要把后端作为 npm / Vite 服务启动。
 - 环境设置为 cloud profile、Supabase 模式、独立 DB / Flyway 配置与新 JWT 密钥。JWT_SECRET 使用新生成、Base64 解码至少 32 字节的随机值，不复用本地密钥。
 - 镜像以非 root 用户运行，JDK 17 容器感知堆上限为内存的 40%，Serial GC，限制 Metaspace / Code Cache / Direct Memory；cloud profile 限制 Tomcat 线程，数据库池默认最多 3 个连接。

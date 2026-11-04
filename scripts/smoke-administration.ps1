@@ -47,5 +47,5 @@ if($dashboard.scope -ne 'ALL' -or !$dashboard.canViewPeople){throw 'Admin dashbo
 $private=Api GET '/api/workspace/dashboard' $null $student
 if($private.scope -ne 'PERSONAL' -or $private.ranking.Count -ne 0){throw 'Student dashboard leaked rankings'}
 $public=Api GET '/api/public/system' $null ''
-if($public.version -ne '0.6.0' -or ($public.PSObject.Properties.Name -match 'password|secret')){throw 'Public settings contract or secrecy failed'}
+if($public.version -ne '0.7.0' -or ($public.PSObject.Properties.Name -match 'password|secret')){throw 'Public settings contract or secrecy failed'}
 Write-Host 'Administration HTTP smoke passed: user lifecycle, JWT revocation, settings, semester defaults and scoped dashboard.'

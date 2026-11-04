@@ -29,6 +29,8 @@ import { SettingsPage } from './admin/SettingsPage'
 import { DashboardInsights } from './dashboard/DashboardInsights'
 import { useSystem } from './system'
 import { dateTime } from './materials/types'
+import { GithubLogin, OAuthCallback } from './OAuth'
+import { DemoPage } from './demo/DemoPage'
 
 function Brand({ compact = false }: { compact?: boolean }) {
   const { info } = useSystem()
@@ -54,6 +56,8 @@ function Login() {
   const { info } = useSystem()
   const { user, loading, login, expired } = useAuth()
   const [submitting, setSubmitting] = useState(false)
+  const [githubAvailable, setGithubAvailable] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [waiting, setWaiting] = useState(false)
   useEffect(() => {
@@ -80,11 +84,13 @@ function Login() {
       {expired && !error && <Alert type="info" showIcon message="登录已过期，请重新登录" className="form-alert" />}
       {error && <Alert type="error" showIcon message={error} className="form-alert" />}
       {waiting && <Alert type="info" showIcon message="正在连接服务，请稍候" description="首次访问或长时间未使用后，连接可能需要几分钟，请勿重复提交。" className="form-alert" />}
-      <Form layout="vertical" requiredMark={false} onFinish={submit} autoComplete="on" size="large">
+      <GithubLogin target={target} onAvailability={setGithubAvailable} />
+      {githubAvailable && <Button type="text" block className="password-login-toggle" onClick={() => setShowPassword(value => !value)} aria-expanded={showPassword}>{showPassword ? '收起账号密码登录' : '使用账号密码登录'}</Button>}
+      {(!githubAvailable || showPassword) && <Form layout="vertical" requiredMark={false} onFinish={submit} autoComplete="on" size="large">
         <Form.Item label="用户名" name="username" rules={[{ required: true, whitespace: true, message: '请输入用户名' }, { max: 64, message: '用户名最多 64 个字符' }]}><Input prefix={<UserOutlined />} placeholder="请输入用户名" autoComplete="username" maxLength={64} /></Form.Item>
         <Form.Item label="密码" name="password" rules={[{ required: true, message: '请输入密码' }, { max: 72, message: '密码最多 72 个字符' }]}><Input.Password prefix={<LockOutlined />} placeholder="请输入密码" autoComplete="current-password" maxLength={72} /></Form.Item>
-        <Button type="primary" htmlType="submit" block size="large" loading={submitting} className="login-submit">登录工作空间 <ArrowRightOutlined /></Button>
-      </Form>
+        <Button type="primary" htmlType="submit" block size="large" aria-label="登录工作空间" loading={submitting} className="login-submit">登录工作空间 <ArrowRightOutlined aria-hidden /></Button>
+      </Form>}
       <div className="login-note"><InfoCircleOutlined />{import.meta.env.PROD ? <p>请使用管理员分配的账户登录。<br />如需访问权限，请联系系统管理员。</p> : <p>本地演示支持管理员、实验员和学生账户。<br />请使用开发环境中生成的凭据登录。</p>}</div>
       <div className="login-security"><SafetyCertificateOutlined /> 密码经加密存储，访问受角色权限保护</div>
     </div><footer>材智通 CaiZhiTong <span>·</span> 智慧材料库数字化管理系统</footer></section>
@@ -102,6 +108,7 @@ function Shell() {
   if (!user) return null
   const allowed = modules.filter(m => user.modules.includes(m.key))
   const groups = [
+    { label: '公开演示 · 只读', keys: ['demo/dashboard', 'demo/materials', 'demo/stocks'] },
     { label: '工作空间', keys: ['dashboard'] },
     { label: '材料与流转', keys: ['materials', 'inventory', 'inbound', 'requisitions', 'returns', 'alerts', 'reports'] },
     { label: '系统管理', keys: ['users', 'settings'] },
@@ -111,10 +118,10 @@ function Shell() {
     if (!children.length) return []
     return collapsed ? children : [{ type: 'group' as const, label: group.label, children }]
   })
-  const nav = <><Link to="/dashboard" className="brand-link" aria-label="材智通工作台"><Brand compact={collapsed} /></Link><nav aria-label="主导航"><Menu mode="inline" inlineCollapsed={collapsed} selectedKeys={current ? [current.key] : []} items={items} onClick={({ key }) => navigate('/' + key)} /></nav><div className="sidebar-bottom">{!collapsed && <div className="workspace-version"><span className="version-dot" /><div><strong>实验室工作空间</strong><span>Sprint 06 · 完整工作空间</span></div></div>}<Tooltip title={collapsed ? '展开侧边栏' : '收起侧边栏'}><Button className="collapse-button" type="text" aria-label={collapsed ? '展开侧边栏' : '收起侧边栏'} icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />} onClick={() => setCollapsed(!collapsed)} /></Tooltip></div></>
+  const nav = <><Link to="/dashboard" className="brand-link" aria-label="材智通工作台"><Brand compact={collapsed} /></Link><nav aria-label="主导航"><Menu mode="inline" inlineCollapsed={collapsed} selectedKeys={current ? [current.key] : []} items={items} onClick={({ key }) => navigate('/' + key)} /></nav><div className="sidebar-bottom">{!collapsed && <div className="workspace-version"><span className="version-dot" /><div><strong>{user.modules.includes('demo/dashboard') ? '公开演示空间' : '实验室工作空间'}</strong><span>{user.modules.includes('demo/dashboard') ? '独立合成数据 · 只读' : 'Sprint 06 · 完整工作空间'}</span></div></div>}<Tooltip title={collapsed ? '展开侧边栏' : '收起侧边栏'}><Button className="collapse-button" type="text" aria-label={collapsed ? '展开侧边栏' : '收起侧边栏'} icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />} onClick={() => setCollapsed(!collapsed)} /></Tooltip></div></>
   return <div className={'app-shell' + (collapsed ? ' is-collapsed' : '')}><a className="skip-link" href="#main-content">跳转至内容</a><aside className="sidebar">{nav}</aside>
     <Drawer title="工作空间导航" open={mobileOpen} onClose={() => setMobileOpen(false)} placement="left" styles={{ body: { padding: 0 } }} width={280}><div className="drawer-nav">{nav}</div></Drawer>
-    <div className="app-body"><header className="toolbar"><div className="toolbar-left"><Button type="text" className="mobile-menu" aria-label="打开导航" icon={<MenuOutlined />} onClick={() => { setCollapsed(false); setMobileOpen(true) }} /><span className="toolbar-workspace">材料工作空间</span><span className="toolbar-separator">/</span><span>{current?.title || '页面未找到'}</span></div><AccountMenu user={user} onLogout={() => { logout(); navigate('/login', { replace: true }) }} /></header>
+    <div className="app-body"><header className="toolbar"><div className="toolbar-left"><Button type="text" className="mobile-menu" aria-label="打开导航" icon={<MenuOutlined />} onClick={() => { setCollapsed(false); setMobileOpen(true) }} /><span className="toolbar-workspace">{user.modules.includes('demo/dashboard') ? '公开演示空间' : '材料工作空间'}</span><span className="toolbar-separator">/</span><span>{current?.title || '页面未找到'}</span></div><AccountMenu user={user} onLogout={() => { logout(); navigate('/login', { replace: true }) }} /></header>
       <main id="main-content" className="main-content"><Outlet /></main><footer className="app-footer"><span>材智通 · 为实验室的每一天</span><span>Sprint 06 <span className="footer-dot">·</span> v{info.version}</span></footer></div></div>
 }
 function PageHeading({ title, description, extra }: { title: string; description: string; extra?: ReactNode }) {
@@ -151,6 +158,10 @@ function Dashboard() {
     <section className="progress-banner"><span className="progress-icon"><CompassOutlined /></span><div><h3>工作空间已就绪</h3><p>材料流转、用户权限与全局设置已就绪。数据按真实业务记录汇总。</p></div><span className="progress-status"><CheckOutlined /> Sprint 06</span></section>
   </div>
 }
+function DashboardEntry() {
+  const { user } = useAuth()
+  return user?.modules.includes('demo/dashboard') ? <Navigate to="/demo/dashboard" replace /> : <RoleGuard moduleKey="dashboard"><Dashboard /></RoleGuard>
+}
 function Forbidden() { return <div className="surface result-panel"><Result status="403" title="此页面需要更多权限" subTitle="当前账户无权访问。你可以返回工作台，或联系系统管理员。" extra={<Link to="/dashboard"><Button type="primary">返回工作台</Button></Link>} /></div> }
 function RoleGuard({ moduleKey, children }: { moduleKey: string; children: ReactNode }) {
   const { user } = useAuth()
@@ -158,7 +169,7 @@ function RoleGuard({ moduleKey, children }: { moduleKey: string; children: React
 }
 function NotFound() { return <div className="surface result-panel"><Result icon={<FolderOpenOutlined />} title="没有找到这个页面" subTitle="页面地址可能已更改，请检查地址或返回工作台。" extra={<Link to="/dashboard"><Button type="primary">返回工作台</Button></Link>} /></div> }
 export function App() {
-  return <Routes><Route path="/login" element={<Login />} /><Route element={<Protected />}><Route element={<Shell />}><Route index element={<Navigate to="/dashboard" replace />} /><Route path="/dashboard" element={<RoleGuard moduleKey="dashboard"><Dashboard /></RoleGuard>} />{modules.filter(m => m.key !== 'dashboard').map(m => <Route key={m.key} path={'/' + m.key} element={<RoleGuard moduleKey={m.key}>{m.key === 'materials' ? <MaterialsPage /> : m.key === 'inventory' ? <InventoryPage /> : m.key === 'inbound' ? <InboundPage /> : m.key === 'requisitions' ? <IssuesPage /> : m.key === 'returns' ? <LifecyclePage /> : m.key === 'alerts' ? <AlertsPage /> : m.key === 'reports' ? <ReportsPage /> : m.key === 'users' ? <UsersPage /> : <SettingsPage />}</RoleGuard>} />)}<Route path="/stock/batches/:code" element={<RoleGuard moduleKey="materials"><BatchPage /></RoleGuard>} /><Route path="*" element={<NotFound />} /></Route></Route></Routes>
+  return <Routes><Route path="/login" element={<Login />} /><Route path="/oauth/callback" element={<OAuthCallback />} /><Route element={<Protected />}><Route element={<Shell />}><Route index element={<Navigate to="/dashboard" replace />} /><Route path="/dashboard" element={<DashboardEntry />} />{modules.filter(m => m.key !== 'dashboard').map(m => <Route key={m.key} path={'/' + m.key} element={<RoleGuard moduleKey={m.key}>{m.key.startsWith('demo/') ? <DemoPage key={m.key} view={m.key.slice(5) as 'dashboard' | 'materials' | 'stocks'} /> : m.key === 'materials' ? <MaterialsPage /> : m.key === 'inventory' ? <InventoryPage /> : m.key === 'inbound' ? <InboundPage /> : m.key === 'requisitions' ? <IssuesPage /> : m.key === 'returns' ? <LifecyclePage /> : m.key === 'alerts' ? <AlertsPage /> : m.key === 'reports' ? <ReportsPage /> : m.key === 'users' ? <UsersPage /> : <SettingsPage />}</RoleGuard>} />)}<Route path="/stock/batches/:code" element={<RoleGuard moduleKey="materials"><BatchPage /></RoleGuard>} /><Route path="*" element={<NotFound />} /></Route></Route></Routes>
 }
 
 
