@@ -216,3 +216,9 @@ Sprint 05 最终验收：Maven `clean package` **122/122** 通过（原 93、新
 新增 26 项测试（Storage 13、配置 5、真实 PostgreSQL / 本机 HTTP 集成 8）。修复首轮 AssertJ 断言签名、代理字段读取及将 Schema 创建标记误计为版本的问题后，全量 Maven verify **173/173**，原 147 项无回归；TypeScript / 生产构建通过；原完整浏览器 **64/64**（5.1 分钟）、五组 HTTP 冒烟通过。测试仅使用 *_test 库，私有业务 Schema 在本地创建，日常材料 / 批次 / 领用保持原值。
 
 CI 增加真实 Docker 构建及 512 MiB 容器启动检查，远程结果以实际运行日志和 main 徽章为准。真实 Supabase 密钥与 Bucket、Data API 角色权限、Render HTTPS / 长期内存稳定、跨部署附件持久化和生产初始化仍待用户验收后执行。完整实现和平台待办见 [云适配记录](CLOUD-DEPLOYMENT-01.md)，当前方案见 [部署说明](DEPLOYMENT.md)。
+
+## Cloud Deployment 02 · 真实线上部署 · 2026-11-04
+
+经用户授权，使用现有 Supabase 项目和私有桶，创建 Render Free 后端与 Vercel Hobby 前端。真实 SSL Session pooler、独立 caizhitong Schema、原样六版 Flyway、受控管理员和私有照片均已通过云端业务验收；生产初始化随后关闭并移除一次性密码。没有导入本地学生数据或创建付费资源。
+
+生产前端 https://caizhitong-eight.vercel.app，后端 https://caizhitong-api.onrender.com。35 个业务 HTTP 检查覆盖完整库存链路、六种报表及权限；重部署后余额 82 和照片哈希一致。桌面全部菜单与手机登录 / 退出通过真实浏览器。补充前端可配置等待与长等待提示，兼容实际观察到的 Free 冷启动时间，保留本地默认 12 秒。完整平台配置、回归和发布证据见 [真实云部署记录](CLOUD-DEPLOYMENT-02.md)。

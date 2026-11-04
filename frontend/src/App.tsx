@@ -55,6 +55,13 @@ function Login() {
   const { user, loading, login, expired } = useAuth()
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [waiting, setWaiting] = useState(false)
+  useEffect(() => {
+    setWaiting(false)
+    if (!submitting) return
+    const timer = window.setTimeout(() => setWaiting(true), 10000)
+    return () => window.clearTimeout(timer)
+  }, [submitting])
   const location = useLocation()
   const navigate = useNavigate()
   if (loading) return <LoadingScreen />
@@ -72,12 +79,13 @@ function Login() {
     <section className="login-panel"><div className="login-form-wrap"><div className="mobile-brand"><Brand /></div><div className="login-heading"><span className="login-glyph"><LockOutlined /></span><h2>欢迎回到{info.systemName}</h2><p>登录账户，进入你的材料工作空间。</p></div>
       {expired && !error && <Alert type="info" showIcon message="登录已过期，请重新登录" className="form-alert" />}
       {error && <Alert type="error" showIcon message={error} className="form-alert" />}
+      {waiting && <Alert type="info" showIcon message="正在连接服务，请稍候" description="首次访问或长时间未使用后，连接可能需要几分钟，请勿重复提交。" className="form-alert" />}
       <Form layout="vertical" requiredMark={false} onFinish={submit} autoComplete="on" size="large">
         <Form.Item label="用户名" name="username" rules={[{ required: true, whitespace: true, message: '请输入用户名' }, { max: 64, message: '用户名最多 64 个字符' }]}><Input prefix={<UserOutlined />} placeholder="请输入用户名" autoComplete="username" maxLength={64} /></Form.Item>
         <Form.Item label="密码" name="password" rules={[{ required: true, message: '请输入密码' }, { max: 72, message: '密码最多 72 个字符' }]}><Input.Password prefix={<LockOutlined />} placeholder="请输入密码" autoComplete="current-password" maxLength={72} /></Form.Item>
         <Button type="primary" htmlType="submit" block size="large" loading={submitting} className="login-submit">登录工作空间 <ArrowRightOutlined /></Button>
       </Form>
-      <div className="login-note"><InfoCircleOutlined /><p>本地演示支持管理员、实验员和学生账户。<br />请使用开发环境中生成的凭据登录。</p></div>
+      <div className="login-note"><InfoCircleOutlined />{import.meta.env.PROD ? <p>请使用管理员分配的账户登录。<br />如需访问权限，请联系系统管理员。</p> : <p>本地演示支持管理员、实验员和学生账户。<br />请使用开发环境中生成的凭据登录。</p>}</div>
       <div className="login-security"><SafetyCertificateOutlined /> 密码经加密存储，访问受角色权限保护</div>
     </div><footer>材智通 CaiZhiTong <span>·</span> 智慧材料库数字化管理系统</footer></section>
   </main>

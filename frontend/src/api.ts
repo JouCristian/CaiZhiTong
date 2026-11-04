@@ -43,6 +43,10 @@ export class ApiError extends Error {
   }
 }
 const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
+// Free hosting may need several minutes to wake after inactivity.
+const configuredTimeout = Number(import.meta.env.VITE_API_TIMEOUT_MS)
+const requestTimeout = Number.isFinite(configuredTimeout) && configuredTimeout >= 12000 && configuredTimeout <= 300000
+  ? configuredTimeout : 12000
 // randomUUID requires HTTPS; getRandomValues also works on local LAN HTTP.
 export function newRequestId(): string {
   if (typeof globalThis.crypto.randomUUID === 'function')
@@ -53,7 +57,7 @@ export function newRequestId(): string {
   const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
 }
-export async function requestBlob(path: string, timeout = 12000): Promise<Blob> {
+export async function requestBlob(path: string, timeout = requestTimeout): Promise<Blob> {
   const token = getToken(),
     controller = new AbortController()
   const timer = window.setTimeout(() => controller.abort(), timeout)
@@ -88,7 +92,7 @@ export async function request<T>(
 ): Promise<T> {
   const token = authenticated ? getToken() : null
   const controller = new AbortController()
-  const timer = window.setTimeout(() => controller.abort(), 12000)
+  const timer = window.setTimeout(() => controller.abort(), requestTimeout)
   try {
     const response = await fetch(base + path, {
       ...options,

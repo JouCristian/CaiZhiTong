@@ -1,8 +1,8 @@
 # 云端部署说明
 
-当前确定架构：GitHub 源码 → Render Java 17 / Spring Boot → Supabase PostgreSQL + 私有 Storage。Vercel 前端属于下一阶段。历史发布记录中的其他供应商方案已被本方案替代，不代表当前部署选择。
+当前架构：GitHub main → Vercel React 前端 → Render Java 17 / Spring Boot → Supabase PostgreSQL + 私有 Storage。历史发布记录中的其他供应商方案已被本方案替代。
 
-**当前只完成适配与本地隔离验证，尚未完成真实云端部署。** 本轮不控制浏览器、不创建 Render / Vercel 服务、不修改线上 Supabase 数据、不执行生产管理员初始化，也不开通付费资源。实际结果见 [Cloud Deployment 01](CLOUD-DEPLOYMENT-01.md)。
+**真实云部署已完成初始业务验收。** [前端](https://caizhitong-eight.vercel.app) · [后端健康](https://caizhitong-api.onrender.com/actuator/health)。历史本地验证见 [Cloud Deployment 01](CLOUD-DEPLOYMENT-01.md)，真实配置与验证边界见 [Cloud Deployment 02](CLOUD-DEPLOYMENT-02.md)。以下步骤供复现和维护；已有项目不要重复创建。
 
 ## 配置入口
 
@@ -14,7 +14,7 @@
 
 沿用用户已经创建的 CaiZhiTong Free 项目（Mumbai），不要另建项目，不导入本地学生或财务数据。
 
-后续经用户授权部署时，在项目 Connect 页面读取准确主机、用户名和数据库名。先确认 Render 的 IP 出站能力：IPv6 可用时可选择 Direct；IPv4 环境选 **Session pooler 5432**。当前长期运行的 JDBC 应用不使用 Transaction pooler 6543，不按区域猜测主机。
+在项目 Connect 页面读取准确主机、用户名和数据库名。当前已验证 Render 使用 **Session pooler 5432** 连接成功，不依赖 IPv6 Direct；长期运行的 JDBC 应用不使用 Transaction pooler 6543，不按区域猜测主机。实际云库 PostgreSQL 为 17.11，本地 / CI 继续兼容 PostgreSQL 15。
 
 连接形式：
 
@@ -37,9 +37,9 @@ V1–V6 不改写、不新增版本，仅在新私有 Schema 原样执行。始�
 
 ### Data API 防护
 
-后续必须在 Supabase Data API 配置中确认 `caizhitong` **不在 Exposed schemas**，或在不影响 Storage 的前提下关闭不需要的 Data API。不要把业务表移到默认公开 API Schema。前端仍只访问 Spring Boot，不使用 Supabase anon key 直接查询业务表。
+当前 Supabase Data API 已由用户关闭；后续如开启，必须确认 `caizhitong` **不在 Exposed schemas**。不要把业务表移到公开 API Schema。前端仍只访问 Spring Boot，不使用 Supabase anon key 直接查询业务表。
 
-新私有 Schema 不授予 PUBLIC USAGE；真实 Supabase 上还需核对 anon / authenticated 等平台角色的 Schema / 表权限及 Data API 实测。当前本地测试不能替代此平台验收，也不会擅自更改线上权限。
+新私有 Schema 不授予 PUBLIC USAGE；已在真实 Supabase 检查 anon / authenticated 均无该 Schema USAGE，实际 Data API 请求不可用。不要在后续维护中向这些角色授予业务访问权限。
 
 ## Supabase 私有 Storage
 
@@ -50,11 +50,11 @@ V1–V6 不改写、不新增版本，仅在新私有 Schema 原样执行。始�
     SUPABASE_STORAGE_BUCKET=caizhitong-attachments
     SUPABASE_STORAGE_KEY=<仅后端持有的服务端存储凭据>
 
-后续由用户在现有项目创建或选择 **private** Bucket `caizhitong-attachments`，不要开启 Public；建议限制为 JPG / PNG / WebP 和 5 MB。凭据只放后端环境变量，不使用 anon / publishable key，不放入任何 VITE_ 配置。后端启动会鉴权读取 Bucket 元数据，拒绝公开、缺失或无法验证的 Bucket。
+沿用现有 **private** Bucket `caizhitong-attachments`，不要开启 Public；实际限制为 JPG / PNG / WebP 和 5 MiB。凭据只放后端环境变量，不使用 anon / publishable key，不放入任何 VITE_ 配置。后端启动会鉴权读取 Bucket 元数据，拒绝公开、缺失或无法验证的 Bucket。
 
 应用保留原图片解码、5 MB / 2000 万像素限制和随机对象标识；上传成功后把对象标识、类型、大小、哈希和上传人保存到 PostgreSQL。所有读取继续经过 Spring Security、JWT、角色及附件归属检查，由后端代理返回，并设置 no-store / nosniff；不返回公开或长期签名 URL。上传不覆盖同名对象，数据库记录失败时尝试清理已上传对象。
 
-已在本机 loopback HTTP 夹具验证协议、鉴权和重新创建后端存储实例后的读取；**真实服务端凭据、平台网关、Bucket 和重新部署持久性仍待云端验证**。切换存储模式不会搬迁旧本地文件；已有附件若要迁移，需要单独实施，不删除本地原件。
+已验证真实平台上传、服务端认证读取、匿名拒绝和 Render 重新部署后的相同照片哈希；原本机 loopback HTTP 夹具继续用于自动化回归。切换存储模式不会搬迁旧本地文件；已有附件迁移需要单独实施，不删除本地原件。
 
 ## 首个生产管理员
 
@@ -66,31 +66,37 @@ V1–V6 不改写、不新增版本，仅在新私有 Schema 原样执行。始�
 
 只有没有任何启用 ADMIN 时才创建账户；密码 BCrypt，使用与用户维护一致的数据库事务锁。并发启动只创建一个有效管理员。存在有效管理员时重复启动直接跳过，不重置密码；用户名已被其他账户占用则拒绝接管。没有公开注册或初始化 HTTP 接口。
 
-成功验证首次登录后，删除一次性密码变量并设置 `BOOTSTRAP_ADMIN_ENABLED=false`。仅在没有有效管理员且明确启用该开关时才允许初始化；保留开关和秘密会留下未来重新初始化的能力，因此不应长期保存。初始化逻辑已在独立测试库验证，**本轮没有在生产执行**。
+成功验证首次登录后，删除一次性密码变量并设置 `BOOTSTRAP_ADMIN_ENABLED=false`。当前生产已完成这两个收尾步骤，重部署后登录正常且启用管理员为 1。保留开关和秘密会留下未来重新初始化的能力，不应长期保存；更换部署配置时不要重新加入密码。
 
-## Render Docker：后续执行步骤
+## Render Docker 配置
 
-本轮只准备并测试代码，不创建服务。后续选择 Free；遇到收费磁盘、套餐或网络能力确认时交给用户处理，不自动升级。
+现有服务名 caizhitong-api，Free，Singapore。不要重复创建；收费磁盘、套餐或资源升级需账户持有人确认。
 
 - 仓库 `JouCristian/CaiZhiTong`，分支 main，Runtime Docker。
 - Docker build context `backend`；Dockerfile 使用控制台要求的仓库相对路径 `backend/Dockerfile`。本地等价命令：`docker build -t caizhitong-backend:0.6.0 ./backend`。
 - 健康检查 `/actuator/health`。cloud profile 优先 SERVER_PORT，其次平台 PORT，默认 10000；不要把后端作为 npm / Vite 服务启动。
 - 环境设置为 cloud profile、Supabase 模式、独立 DB / Flyway 配置与新 JWT 密钥。JWT_SECRET 使用新生成、Base64 解码至少 32 字节的随机值，不复用本地密钥。
 - 镜像以非 root 用户运行，JDK 17 容器感知堆上限为内存的 40%，Serial GC，限制 Metaspace / Code Cache / Direct Memory；cloud profile 限制 Tomcat 线程，数据库池默认最多 3 个连接。
-- GitHub CI 将实际构建 Docker 镜像，并在 512 MiB 限制下连接临时测试 PostgreSQL、以 local 存储启动验证健康 / 401 / OOM 与重启次数。这不代表 Render 或 Supabase 已部署。
+- GitHub CI 构建 Docker 镜像，并在 512 MiB 限制下连接临时 PostgreSQL，以 local 存储验证健康 / 401 / OOM 与重启次数。真实 Render 的独立部署结果见云部署记录。
 - Free 实例本地磁盘不是附件的可靠持久层，实际部署必须使用 Supabase 模式。照片不会依赖 Render 本地目录跨部署保存。
 - 启动失败需区分数据库连接 / SSL / 权限 / Schema、Bucket 鉴权和 OOM；不得把内存不足简单报告成数据库故障。真实平台还需观察冷启动、连续请求和重启指标。
 
 ## CORS、公开域名与通知
 
-Vercel 尚未部署时，`CORS_ALLOWED_ORIGINS` 和 `PUBLIC_WEB_URL` 可以留空；这不开放任意生产跨域，受控 API 脚本仍可验证后端。下一阶段填入稳定 HTTPS 前端来源，不能使用通配 CORS。
+当前 `CORS_ALLOWED_ORIGINS` 和 `PUBLIC_WEB_URL` 均为 `https://caizhitong-eight.vercel.app`。更换域名时更新这两个变量并重新部署后端，再实际验证预检和二维码。禁止生产通配 CORS；预览域名不会自动获得生产 API 权限。
 
 `PUBLIC_WEB_URL` 用于二维码和邮件链接，上线前需更新并重新生成相应标签；原二维码不会自动重印。SMTP 不是部署阻塞项：无配置时站内预警继续工作，邮件如实显示 NOT_CONFIGURED。
 
-## Vercel：下一阶段，不在本轮执行
+## Vercel 前端
 
-前端 Root Directory 为 frontend，Build Command `npm run build`，Output Directory dist。设置 `VITE_API_BASE_URL=https://<已验收后端域名>`，不附加 /api，不存服务端秘密；现有 vercel.json 支持 SPA 深层路由。只有后端、数据库、附件与权限云端验收通过后才进入前端部署。
+现有 Hobby 项目 caizhitong 已关联 JouCristian/CaiZhiTong 的 main。Root Directory 为 frontend，Install `npm ci`，Build `npm run build`，Output dist，Node 24.x。生产域名由平台实际分配为 `https://caizhitong-eight.vercel.app`，不要猜测项目同名域名。
 
-## 真实云端验收待办
+设置 `VITE_API_BASE_URL=https://caizhitong-api.onrender.com`（无 /api 后缀）、`VITE_API_TIMEOUT_MS=240000`。Vite 变量在构建时写入，修改后必须重新构建；禁止加入数据库、JWT 或 Storage 秘密。现有 vercel.json 支持 SPA 深层路由。生产域名公开访问，预览部署保留 Vercel 登录保护，且不在后端生产 CORS 中。
 
-Supabase Connect / SSL / Data API 权限、原始六版迁移实际执行、private Bucket 与服务端凭据、生产管理员初始化、Render 免费 Docker 构建与 HTTPS 启动、业务闭环与六种导出、照片跨重启 / 再部署保留、低内存稳定性均需单独实际验证。未部署的能力不标记成功。最终版本标签、GitHub Release 和在线体验链接继续等待云端验收。
+Free 后端休眠后唤醒可能需要几分钟；前端默认本地等待 12 秒，生产设为 240 秒并显示长等待提示。该设置不保证平台可用性，不使用虚假流量保活。
+
+## 维护与后续验证
+
+数据库连接与 TLS、私有 Schema、六版迁移、private Bucket、管理员初始化、HTTPS、业务闭环、六种导出、权限与跨部署照片均已独立验证，证据见 [实际记录](CLOUD-DEPLOYMENT-02.md)。每次修改基础配置后复查健康、登录、CORS、二维码和既有照片；不对日常数据运行重置 / 清理脚本。
+
+继续关注免费资源额度、冷启动、内存、密钥轮换、数据库与附件配套备份。短期验收不替代长期压测或恢复演练。SMTP、自定义域名、正式 Release / tag 后续按需处理。

@@ -2,7 +2,9 @@
 
 面向高校实验室的智慧材料库数字化管理系统。以 React、Spring Boot 和 PostgreSQL 连接材料档案、入库、领用、归还报废、预警与报表，提供可追溯、可本地演示的完整业务闭环。
 
-**当前版本：v0.6.0，Sprint 01–06 已通过本地人工验收，源码已公开。** 所有核心菜单均已接入真实功能；尚未部署公网演示。
+**当前版本：v0.6.0，Sprint 01–06 已通过本地人工验收，源码已公开。** 所有核心菜单均已接入真实功能。
+
+**在线体验：[打开材智通](https://caizhitong-eight.vercel.app)** · [后端健康检查](https://caizhitong-api.onrender.com/actuator/health)。请使用管理员分配的账户；公网环境不提供本地演示密码。免费后端休眠后首次连接可能需要 2–3 分钟。
 
 [![Build and test](https://github.com/JouCristian/CaiZhiTong/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/JouCristian/CaiZhiTong/actions/workflows/ci.yml)
 
@@ -172,6 +174,7 @@ Get-Content ./.env | Select-String '^DEMO_(ADMIN|LAB|STUDENT)_PASSWORD='
 | `BUSINESS_TIME_ZONE` / `STORAGE_ROOT` | 初始业务时区与照片目录 |
 | `MAIL_*` | 可选服务端 SMTP 及通知配置 |
 | `VITE_API_BASE_URL` | 前端生产 API 来源，无 `/api` 后缀；本地留空使用代理 |
+| `VITE_API_TIMEOUT_MS` | 请求等待时间，默认 12000 ms；Render Free 设置 240000 ms 兼容唤醒 |
 | `API_PROXY_TARGET` | Vite 本地代理目标，生产前端不读取 |
 | `STORAGE_MODE` / `SUPABASE_*` | local 文件系统或后端代理的 Supabase 私有 Storage |
 | `DB_SCHEMA` / `DB_POOL_MAX` / `FLYWAY_DB_*` | 私有业务 Schema、连接池和独立迁移连接 |
@@ -250,17 +253,27 @@ npm.cmd --prefix frontend run build
 
 ## 在线演示
 
-尚未部署，无公开体验地址。当前确定为 Supabase PostgreSQL + 私有 Storage、Render Java 后端，Vercel 前端属于下一阶段。已编写云适配，本轮按用户要求仅进行本地隔离验证及 GitHub CI，不创建或修改云端资源，不提前创建正式 Release 或版本标签。
+| 入口 | 地址 |
+| --- | --- |
+| React 工作空间 · Vercel | https://caizhitong-eight.vercel.app |
+| Spring Boot API · Render Free | https://caizhitong-api.onrender.com |
+| HTTPS 健康检查 | https://caizhitong-api.onrender.com/actuator/health |
+
+后端连接 Supabase PostgreSQL 与私有 Storage，前端不直接访问数据库。云库只包含独立验收数据，不导入本地学生信息。管理员由一次性受控初始化创建，初始化开关随后关闭、Render 中的一次性密码变量移除；需要访问账户时请联系项目维护者。
+
+![真实云端工作台](docs/screenshots/cloud-dashboard-desktop.png)
+
+业务链路、权限、六种报表下载、照片认证读取、重新部署后的库存与照片持久性均已在真实云环境验证。桌面及手机浏览器验证记录见 [Cloud Deployment 02](docs/CLOUD-DEPLOYMENT-02.md)。免费实例不提供可用性保证，休眠、冷启动或平台维护可能暂时延迟响应。
 
 ## 发布与当前边界
 
-前端已有 Vercel SPA 重写，后端保留 local 存储并新增 Supabase 私有 Storage、独立 Flyway 连接、私有业务 Schema 与受控首次管理员初始化。[部署说明](docs/DEPLOYMENT.md)列出当前 Supabase / Render 架构及下一阶段 Vercel 配置；[源码发布记录](docs/RELEASE-v0.6.0.md)与[云适配验证记录](docs/CLOUD-DEPLOYMENT-01.md)分别记录真实结果，不将本地模拟通过写成云端部署成功。
+前端使用 Vercel SPA 重写，后端保留 local 存储并支持 Supabase 私有 Storage、独立 Flyway 连接、私有业务 Schema 与受控首次管理员初始化。[部署说明](docs/DEPLOYMENT.md)记录当前配置；[源码发布](docs/RELEASE-v0.6.0.md)、[本地云适配](docs/CLOUD-DEPLOYMENT-01.md)与[真实云部署](docs/CLOUD-DEPLOYMENT-02.md)保留各阶段的验证边界。尚未创建正式 Release 或版本标签。
 
 - 财务表是通用模板，未对接真实学校财务系统；没有真实 SMTP 凭据时，不宣称外部邮箱投递通过。
 - 取消登记可能保留未关联照片，暂不自动清理；发送中断可能留下 SENDING，需核查实际投递后处理。
 - JWT 无刷新令牌或逐设备撤销。退出清除当前浏览器会话；停用 / 密码重置撤销全部旧会话，角色变更在下一次请求生效。
 - 单实例课程项目，复杂审批、LDAP、AI 预测、小程序、多实例存储和生产压测未实现。
-- 后续可完善附件清理、审计和财务模板。首次管理员初始化已实现，但尚未在生产执行；Supabase 实际连接、Data API 权限及 Storage 跨部署持久性仍待平台验收。
+- 后续可完善附件清理、审计、备份恢复及财务模板。短时云验收不等同于长期运行或并发压力测试；免费资源配额和休眠策略以平台当前政策为准。
 
 ## 许可证
 
