@@ -2,9 +2,9 @@
 
 面向高校实验室的智慧材料库数字化管理系统。以 React、Spring Boot 和 PostgreSQL 连接材料档案、入库、领用、归还报废、预警与报表，提供可追溯、可本地演示的完整业务闭环。
 
-**开发版本：v0.7.0 · GitHub OAuth 与只读公开体验。** 本分支新增稳定 GitHub 身份关联与安全 JWT 交接；本功能当前位于 PR，生产 OAuth 启用及真实登录仍待最终确认与上线验收。原 v0.6.0 已完成 Sprint 01–06 人工验收和云端部署，用户名密码登录继续保留。
+**当前版本：v0.7.0 · GitHub OAuth 与只读公开体验。** 现已上线 GitHub 登录：首次进入独立合成演示空间，仅有 GUEST 权限，正式业务数据保持隔离。原用户名密码登录及 Sprint 01–06 业务能力完整保留。[生产上线记录](docs/CLOUD-DEPLOYMENT-03.md)说明真实授权、数据库迁移和验收边界。
 
-**在线体验：[打开材智通](https://caizhitong-eight.vercel.app)** · [后端健康检查](https://caizhitong-api.onrender.com/actuator/health)。请使用管理员分配的账户；公网环境不提供本地演示密码。免费后端休眠后首次连接可能需要 2–3 分钟。
+**在线体验：[打开材智通](https://caizhitong-eight.vercel.app)** · [后端健康检查](https://caizhitong-api.onrender.com/actuator/health)。访客可使用 GitHub 登录公开只读演示；业务成员继续使用管理员分配的账户，公网环境不提供通用演示密码。免费后端休眠后首次连接可能需要 2–3 分钟。
 
 [![Build and test](https://github.com/JouCristian/CaiZhiTong/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/JouCristian/CaiZhiTong/actions/workflows/ci.yml)
 
@@ -64,6 +64,17 @@ v0.7.0 独立演示界面（本机隔离 PostgreSQL + Mock OAuth 的真实浏览
 | 演示工作台 | 演示材料与批次 |
 | --- | --- |
 | <img src="docs/screenshots/v070-oauth-guest-desktop.png" alt="独立合成演示工作台" width="420"> | <img src="docs/screenshots/v070-demo-detail-desktop.png" alt="独立演示材料及示例变化" width="420"> |
+
+<details>
+<summary>v0.7.0 正式生产界面</summary>
+
+| 正式登录入口 | 独立公开演示工作台 |
+| --- | --- |
+| <img src="docs/screenshots/cloud-v070-login-desktop.png" alt="已上线的 GitHub 与密码登录入口" width="420"> | <img src="docs/screenshots/cloud-v070-demo-desktop.png" alt="正式网站独立合成游客演示空间" width="420"> |
+
+[手机登录截图](docs/screenshots/cloud-v070-login-mobile.png)。截图来自正式 Vercel / Render；演示工作台使用独立合成 GUEST 验收账户，不展示真实 GitHub 个人资料。真实 GitHub 授权与复登由账户持有人手动完成，并经数据库指纹核验。
+
+</details>
 
 ## 技术栈与架构
 
