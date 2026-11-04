@@ -5,6 +5,7 @@ import type { LoginResult, User } from './api'
 type AuthContextValue = {
   user: User | null; loading: boolean; error: string; expired: boolean; loggedOut: boolean
   login: (username: string, password: string) => Promise<void>
+  completeOAuth: (code: string, verifier: string) => Promise<void>
   logout: () => void; restore: () => Promise<void>; refreshProfile: () => Promise<void>
 }
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -52,12 +53,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return () => window.clearTimeout(timer)
     } catch { setToken(null); setUser(null); setExpired(true) }
   }, [user])
-  async function login(username: string, password: string) {
-    const data = await request<LoginResult>('/api/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) }, false)
+  const acceptLogin = useCallback((data: LoginResult) => {
     setToken(data.accessToken); setUser(data.user); setExpired(false); setLoggedOut(false); setError('')
+  }, [])
+  async function login(username: string, password: string) {
+    acceptLogin(await request<LoginResult>('/api/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) }, false))
   }
+  const completeOAuth = useCallback(async (code: string, verifier: string) => {
+    acceptLogin(await request<LoginResult>('/api/auth/oauth/exchange', { method: 'POST', body: JSON.stringify({ code, verifier }) }, false))
+  }, [acceptLogin])
   function logout() { setLoggedOut(true); setToken(null); setUser(null); setExpired(false); setError('') }
-  return <AuthContext.Provider value={{ user, loading, error, expired, loggedOut, login, logout, restore, refreshProfile }}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={{ user, loading, error, expired, loggedOut, login, completeOAuth, logout, restore, refreshProfile }}>{children}</AuthContext.Provider>
 }
 export function useAuth() {
   const context = useContext(AuthContext)

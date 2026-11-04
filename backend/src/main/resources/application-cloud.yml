@@ -1,5 +1,9 @@
 # Activate only on the cloud backend. DB/Flyway credentials remain environment values.
 server:
+  servlet:
+    session:
+      cookie:
+        secure: true
   port: ${SERVER_PORT:${PORT:10000}}
   tomcat:
     threads:

@@ -50,6 +50,16 @@ p { text-wrap: pretty; }
 .login-page .ant-form-item { margin-bottom: 24px; }
 .login-submit.ant-btn { height: 48px; font-size: 14px; margin-top: 5px; }
 .login-submit .anticon { margin-left: 10px; }
+.github-login { margin-bottom: 18px; }
+.github-login > .ant-btn { height: 48px; font-weight: 600; }
+.github-login > p { color: var(--muted); font-size: 12px; line-height: 1.7; margin-top: 12px; }
+.github-login .ant-alert { margin-top: 12px; }
+.password-login-toggle { min-height: 44px; margin: -4px 0 18px; }
+.oauth-result { min-height: 100dvh; padding: 24px; }
+.oauth-progress { width: min(430px, 100%); padding: 32px; }
+.oauth-progress > .anticon { font-size: 32px; color: var(--blue); }
+.oauth-progress h1 { font-size: 23px; margin: 22px 0 12px; }
+.oauth-progress p { color: var(--muted); line-height: 1.8; margin-bottom: 26px; }
 .login-note { display: flex; gap: 10px; background: var(--bg); padding: 15px; border-radius: 10px; margin-top: 25px; }
 .login-note > .anticon { color: var(--muted); margin-top: 3px; }
 .login-note p { font-size: 12px; line-height: 1.9; color: var(--muted); }

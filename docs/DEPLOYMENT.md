@@ -6,6 +6,8 @@
 
 ## 配置入口
 
+v0.7.0 增加可选 GitHub OAuth，默认关闭；准确的 GitHub OAuth App 首页 / 回调及仅后端变量见 [OAuth 部署与验收](V0.7.0-GITHUB-OAUTH.md)。未经账户持有人确认不要创建生产 OAuth App 或写入生产身份。V7 是追加迁移，保留原 V1–V6；下面的 v0.6.0 初始云验收记录不代表 OAuth 已在线验证。
+
 - 本地继续使用根 [.env.example](../.env.example)，默认 `local` 存储、`public` Schema，原三个开发演示账户逻辑不变。
 - 云配置模板为 [.env.cloud.example](../.env.cloud.example)。真实值应由用户在平台安全环境变量中设置，或保存在忽略的 `.env.cloud`，不要粘贴到聊天、提交 Git 或写进 Docker 构建参数。
 - `SPRING_PROFILES_ACTIVE=cloud` 启用云保护；仅复制模板不会自动部署。现有 `load-env.ps1` 只加载本地 `.env`，不会暗中切换至云库。

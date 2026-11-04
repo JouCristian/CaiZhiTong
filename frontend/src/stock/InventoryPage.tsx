@@ -35,9 +35,10 @@ type Filters = {
 }
 export function InventoryPage() {
   const { user } = useAuth()
+  const canViewLedger = user?.roles.some(r => ['ADMIN', 'LAB_TECH', 'TEACHER', 'PURCHASER'].includes(r)) ?? false
   const [params] = useSearchParams()
   const [view, setView] = useState(
-      params.get('view') === 'transactions' ? 'transactions' : 'stocks',
+      params.get('view') === 'transactions' && canViewLedger ? 'transactions' : 'stocks',
     ),
     [filters, setFilters] = useState<Filters>({
       page: 1,
@@ -181,7 +182,7 @@ export function InventoryPage() {
           }}
           items={[
             { key: 'stocks', label: '材料库存' },
-            { key: 'transactions', label: '库存流水' },
+            ...(canViewLedger ? [{ key: 'transactions', label: '库存流水' }] : []),
           ]}
         />
         <div className="stock-filters">

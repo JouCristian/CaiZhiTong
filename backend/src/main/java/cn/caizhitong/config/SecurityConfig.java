@@ -52,15 +52,15 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source=new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**",config); return source;
     }
-    @Bean SecurityFilterChain security(HttpSecurity http, UserService users, ObjectMapper json) throws Exception {
+    @Bean @org.springframework.core.annotation.Order(2) SecurityFilterChain security(HttpSecurity http, UserService users, ObjectMapper json) throws Exception {
         org.springframework.security.web.AuthenticationEntryPoint unauth=(request,response,ex) -> writeError(response,json,401,"登录状态已失效，请重新登录");
         org.springframework.security.web.access.AccessDeniedHandler denied=(request,response,ex) -> writeError(response,json,403,"当前账户无权访问此页面");
         return http.csrf(csrf -> csrf.disable()).cors(cors -> {})
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .requestCache(c -> c.disable())
             .authorizeHttpRequests(a -> a
-                .requestMatchers(HttpMethod.POST,"/api/auth/login").permitAll()
-                .requestMatchers(HttpMethod.GET,"/actuator/health","/api/public/system").permitAll()
+                .requestMatchers(HttpMethod.POST,"/api/auth/login","/api/auth/oauth/exchange").permitAll()
+                .requestMatchers(HttpMethod.GET,"/actuator/health","/api/public/system","/api/auth/oauth/config").permitAll()
                 .requestMatchers("/api/**").authenticated().anyRequest().denyAll())
             .exceptionHandling(e -> e.authenticationEntryPoint(unauth).accessDeniedHandler(denied))
             .oauth2ResourceServer(o -> o.authenticationEntryPoint(unauth).accessDeniedHandler(denied)

@@ -2,7 +2,7 @@
 
 面向高校实验室的智慧材料库数字化管理系统。以 React、Spring Boot 和 PostgreSQL 连接材料档案、入库、领用、归还报废、预警与报表，提供可追溯、可本地演示的完整业务闭环。
 
-**当前版本：v0.6.0，Sprint 01–06 已通过本地人工验收，源码已公开。** 所有核心菜单均已接入真实功能。
+**开发版本：v0.7.0 · GitHub OAuth 与只读公开体验。** 本分支新增稳定 GitHub 身份关联与安全 JWT 交接；生产 OAuth 尚待账户持有人创建 OAuth App 并完成配置。原 v0.6.0 已完成 Sprint 01–06 人工验收和云端部署，用户名密码登录继续保留。
 
 **在线体验：[打开材智通](https://caizhitong-eight.vercel.app)** · [后端健康检查](https://caizhitong-api.onrender.com/actuator/health)。请使用管理员分配的账户；公网环境不提供本地演示密码。免费后端休眠后首次连接可能需要 2–3 分钟。
 
@@ -17,6 +17,7 @@
 - **完整材料闭环**：分类与档案、入库批次、领用、归还报废、预警及报表真实关联。
 - **数据可追溯**：精确十进制金额、原价格快照、不可变库存流水与持久幂等，重复提交不重复计量。
 - **角色与隐私**：六类角色、服务端实时授权、旧会话撤销；学生仅访问本人私有业务。
+- **GitHub 只读体验**：OAuth2 授权码、state / PKCE、60 秒浏览器绑定交换码；首次登录仅 GUEST，不按邮箱或用户名合并已有账户。需先完成[OAuth App 配置](docs/V0.7.0-GITHUB-OAUTH.md)。
 - **统一工作空间**：Apple 风格浅色界面、响应式表单与移动卡片，空状态忠实反映数据库。
 
 ## 功能清单
@@ -179,6 +180,7 @@ Get-Content ./.env | Select-String '^DEMO_(ADMIN|LAB|STUDENT)_PASSWORD='
 | `STORAGE_MODE` / `SUPABASE_*` | local 文件系统或后端代理的 Supabase 私有 Storage |
 | `DB_SCHEMA` / `DB_POOL_MAX` / `FLYWAY_DB_*` | 私有业务 Schema、连接池和独立迁移连接 |
 | `BOOTSTRAP_ADMIN_*` | 受控的首次管理员初始化，默认关闭，无公网注册接口 |
+| `GITHUB_OAUTH_ENABLED` / `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` / `GITHUB_REDIRECT_URI` | 可选 GitHub OAuth，仅后端配置；默认关闭，生产回调见[开发记录](docs/V0.7.0-GITHUB-OAUTH.md) |
 
 完整模板：[本地后端](.env.example)、[前端](frontend/.env.example)、[云端后端](.env.cloud.example)。真实 `.env` / `.env.cloud`、数据库目录、附件和日志不提交。云模板不会被本地启动脚本自动加载。
 

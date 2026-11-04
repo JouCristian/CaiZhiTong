@@ -6,7 +6,7 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     server: {
       port: 5173, strictPort: true,
-      proxy: { '/api': { target: env.API_PROXY_TARGET || 'http://127.0.0.1:8080', changeOrigin: true } },
+      proxy: Object.fromEntries(['/api', '/oauth2', '/login/oauth2'].map(path => [path, { target: env.API_PROXY_TARGET || 'http://127.0.0.1:8080', changeOrigin: true }])),
     },
     build: {
       rollupOptions: {

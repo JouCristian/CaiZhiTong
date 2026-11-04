@@ -17,7 +17,7 @@ const defaults: SystemInfo = {
   systemName: "材智通",
   systemDescription: "智慧材料库数字化管理系统",
   businessZone: "Asia/Shanghai",
-  version: "0.6.0",
+  version: "0.7.0",
 };
 const Context = createContext({ info: defaults, refresh: async () => {} });
 export function SystemProvider({ children }: { children: ReactNode }) {

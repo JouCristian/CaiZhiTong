@@ -29,6 +29,7 @@ import { SettingsPage } from './admin/SettingsPage'
 import { DashboardInsights } from './dashboard/DashboardInsights'
 import { useSystem } from './system'
 import { dateTime } from './materials/types'
+import { GithubLogin, OAuthCallback } from './OAuth'
 
 function Brand({ compact = false }: { compact?: boolean }) {
   const { info } = useSystem()
@@ -54,6 +55,8 @@ function Login() {
   const { info } = useSystem()
   const { user, loading, login, expired } = useAuth()
   const [submitting, setSubmitting] = useState(false)
+  const [githubAvailable, setGithubAvailable] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [waiting, setWaiting] = useState(false)
   useEffect(() => {
@@ -80,11 +83,13 @@ function Login() {
       {expired && !error && <Alert type="info" showIcon message="登录已过期，请重新登录" className="form-alert" />}
       {error && <Alert type="error" showIcon message={error} className="form-alert" />}
       {waiting && <Alert type="info" showIcon message="正在连接服务，请稍候" description="首次访问或长时间未使用后，连接可能需要几分钟，请勿重复提交。" className="form-alert" />}
-      <Form layout="vertical" requiredMark={false} onFinish={submit} autoComplete="on" size="large">
+      <GithubLogin target={target} onAvailability={setGithubAvailable} />
+      {githubAvailable && <Button type="text" block className="password-login-toggle" onClick={() => setShowPassword(value => !value)} aria-expanded={showPassword}>{showPassword ? '收起账号密码登录' : '使用账号密码登录'}</Button>}
+      {(!githubAvailable || showPassword) && <Form layout="vertical" requiredMark={false} onFinish={submit} autoComplete="on" size="large">
         <Form.Item label="用户名" name="username" rules={[{ required: true, whitespace: true, message: '请输入用户名' }, { max: 64, message: '用户名最多 64 个字符' }]}><Input prefix={<UserOutlined />} placeholder="请输入用户名" autoComplete="username" maxLength={64} /></Form.Item>
         <Form.Item label="密码" name="password" rules={[{ required: true, message: '请输入密码' }, { max: 72, message: '密码最多 72 个字符' }]}><Input.Password prefix={<LockOutlined />} placeholder="请输入密码" autoComplete="current-password" maxLength={72} /></Form.Item>
-        <Button type="primary" htmlType="submit" block size="large" loading={submitting} className="login-submit">登录工作空间 <ArrowRightOutlined /></Button>
-      </Form>
+        <Button type="primary" htmlType="submit" block size="large" aria-label="登录工作空间" loading={submitting} className="login-submit">登录工作空间 <ArrowRightOutlined aria-hidden /></Button>
+      </Form>}
       <div className="login-note"><InfoCircleOutlined />{import.meta.env.PROD ? <p>请使用管理员分配的账户登录。<br />如需访问权限，请联系系统管理员。</p> : <p>本地演示支持管理员、实验员和学生账户。<br />请使用开发环境中生成的凭据登录。</p>}</div>
       <div className="login-security"><SafetyCertificateOutlined /> 密码经加密存储，访问受角色权限保护</div>
     </div><footer>材智通 CaiZhiTong <span>·</span> 智慧材料库数字化管理系统</footer></section>
@@ -158,7 +163,7 @@ function RoleGuard({ moduleKey, children }: { moduleKey: string; children: React
 }
 function NotFound() { return <div className="surface result-panel"><Result icon={<FolderOpenOutlined />} title="没有找到这个页面" subTitle="页面地址可能已更改，请检查地址或返回工作台。" extra={<Link to="/dashboard"><Button type="primary">返回工作台</Button></Link>} /></div> }
 export function App() {
-  return <Routes><Route path="/login" element={<Login />} /><Route element={<Protected />}><Route element={<Shell />}><Route index element={<Navigate to="/dashboard" replace />} /><Route path="/dashboard" element={<RoleGuard moduleKey="dashboard"><Dashboard /></RoleGuard>} />{modules.filter(m => m.key !== 'dashboard').map(m => <Route key={m.key} path={'/' + m.key} element={<RoleGuard moduleKey={m.key}>{m.key === 'materials' ? <MaterialsPage /> : m.key === 'inventory' ? <InventoryPage /> : m.key === 'inbound' ? <InboundPage /> : m.key === 'requisitions' ? <IssuesPage /> : m.key === 'returns' ? <LifecyclePage /> : m.key === 'alerts' ? <AlertsPage /> : m.key === 'reports' ? <ReportsPage /> : m.key === 'users' ? <UsersPage /> : <SettingsPage />}</RoleGuard>} />)}<Route path="/stock/batches/:code" element={<RoleGuard moduleKey="materials"><BatchPage /></RoleGuard>} /><Route path="*" element={<NotFound />} /></Route></Route></Routes>
+  return <Routes><Route path="/login" element={<Login />} /><Route path="/oauth/callback" element={<OAuthCallback />} /><Route element={<Protected />}><Route element={<Shell />}><Route index element={<Navigate to="/dashboard" replace />} /><Route path="/dashboard" element={<RoleGuard moduleKey="dashboard"><Dashboard /></RoleGuard>} />{modules.filter(m => m.key !== 'dashboard').map(m => <Route key={m.key} path={'/' + m.key} element={<RoleGuard moduleKey={m.key}>{m.key === 'materials' ? <MaterialsPage /> : m.key === 'inventory' ? <InventoryPage /> : m.key === 'inbound' ? <InboundPage /> : m.key === 'requisitions' ? <IssuesPage /> : m.key === 'returns' ? <LifecyclePage /> : m.key === 'alerts' ? <AlertsPage /> : m.key === 'reports' ? <ReportsPage /> : m.key === 'users' ? <UsersPage /> : <SettingsPage />}</RoleGuard>} />)}<Route path="/stock/batches/:code" element={<RoleGuard moduleKey="materials"><BatchPage /></RoleGuard>} /><Route path="*" element={<NotFound />} /></Route></Route></Routes>
 }
 
 

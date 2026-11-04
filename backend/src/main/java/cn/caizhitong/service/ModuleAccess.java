@@ -9,7 +9,7 @@ public class ModuleAccess {
     static {
         RULES.put("dashboard", Set.of("GUEST","STUDENT","LAB_TECH","TEACHER","PURCHASER","ADMIN"));
         RULES.put("materials", Set.of("GUEST","STUDENT","LAB_TECH","TEACHER","PURCHASER","ADMIN"));
-        RULES.put("inventory", Set.of("LAB_TECH","TEACHER","PURCHASER","ADMIN"));
+        RULES.put("inventory", Set.of("GUEST","LAB_TECH","TEACHER","PURCHASER","ADMIN"));
         RULES.put("inbound", Set.of("LAB_TECH","PURCHASER","ADMIN"));
         RULES.put("requisitions", Set.of("STUDENT","LAB_TECH","TEACHER","ADMIN"));
         RULES.put("returns", Set.of("STUDENT","LAB_TECH","TEACHER","ADMIN"));

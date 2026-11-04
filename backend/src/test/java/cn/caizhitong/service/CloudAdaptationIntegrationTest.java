@@ -96,7 +96,7 @@ class CloudAdaptationIntegrationTest {
     @Test void originalSixMigrationsCreatePrivateSchemaUsingIndependentConnection() {
         assertThat(storage).isInstanceOf(SupabaseAttachmentStorage.class);
         assertThat(flyway.getConfiguration().getDataSource()).isNotSameAs(datasource);
-        assertThat(Arrays.stream(flyway.info().applied()).filter(i->i.getVersion()!=null).map(i->i.getVersion().getVersion()).toList()).containsExactly("1","2","3","4","5","6");
+        assertThat(Arrays.stream(flyway.info().applied()).filter(i->i.getVersion()!=null).map(i->i.getVersion().getVersion()).toList()).containsExactly("1","2","3","4","5","6","7");
         assertThat(flyway.validateWithResult().validationSuccessful).isTrue();
         assertThat(db.count("SELECT count(*) FROM sys_role")).isEqualTo(6);
         assertThat(db.count("SELECT count(*) FROM information_schema.tables WHERE table_schema=? AND table_name='stock_attachment'",SCHEMA)).isEqualTo(1);

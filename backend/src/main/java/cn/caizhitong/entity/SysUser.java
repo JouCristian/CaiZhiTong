@@ -11,6 +11,9 @@ public class SysUser {
     private String passwordHash;
     private String displayName;
     private Boolean enabled;
+    private Boolean passwordLoginEnabled;
+    public Boolean getPasswordLoginEnabled() { return passwordLoginEnabled; }
+    public void setPasswordLoginEnabled(Boolean value) { passwordLoginEnabled=value; }
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getUsername() { return username; }

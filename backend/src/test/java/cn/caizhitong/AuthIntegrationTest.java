@@ -65,7 +65,7 @@ class AuthIntegrationTest {
     }
     @Test void healthIsPublicAndPostgresIsConnected() throws Exception {
         mvc.perform(get("/actuator/health")).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("UP"));
-        assertThat(jdbc.queryForObject("SELECT count(*) FROM flyway_schema_history WHERE success",Integer.class)).isEqualTo(6);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM flyway_schema_history WHERE success",Integer.class)).isEqualTo(7);
         assertThat(jdbc.queryForObject("SELECT count(*) FROM sys_role",Integer.class)).isEqualTo(6);
     }
     @Test void anonymousCannotReadIdentity() throws Exception {
@@ -87,7 +87,7 @@ class AuthIntegrationTest {
             case "TEACHER" -> Set.of("materials","inventory","requisitions","returns","alerts","reports");
             case "PURCHASER" -> Set.of("materials","inventory","inbound","alerts","reports");
             case "STUDENT" -> Set.of("materials","requisitions","returns","reports");
-            default -> Set.of("materials");
+            default -> Set.of("materials","inventory");
         };
         for (String module: List.of("materials","inventory","inbound","requisitions","returns","alerts","reports","users","settings")) {
             mvc.perform(get("/api/workspace/modules/"+module).header("Authorization","Bearer "+token))

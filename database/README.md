@@ -128,3 +128,6 @@ JUnit 清理在既有测试库保护下显式包含七张业务表（领用单 /
 新增真实 PostgreSQL 集成测试只在 *_test 数据库的 caizhitong_cloud_test Schema 初始化、清理和创建测试管理员。清理前检查库名及 Schema；日常和线上数据库不承载这些写入。测试验证六版本、独立连接、PRIVATE Schema 对 PUBLIC 无 USAGE，以及业务与附件元数据重新查询。真实 Supabase 的平台角色和 Exposed schemas 仍需后续验收。
 
 一次性生产管理员功能默认关闭，仅在明确启用且无有效 ADMIN 时执行，BCrypt、事务锁、同名账户拒绝接管，不重置既有密码；本轮仅在测试库运行。附件表继续保存原 storage_key，不改变表结构；Supabase 实现保存私有对象，本地实现保留。配置及未执行项见 [部署说明](../docs/DEPLOYMENT.md)与[云适配记录](../docs/CLOUD-DEPLOYMENT-01.md)。
+# v0.7.0 追加迁移
+
+V7 新增 oauth_identity、oauth_login_exchange 与 sys_user.password_login_enabled。原 V1–V6 保持不变；身份以 provider + 数字 ID 唯一关联，交换码只保存 SHA-256，60 秒过期并一次消费。原密码账户默认继续可用，不修改管理员密码或角色，不删除库存数据。生产执行以已审阅 PR 和 OAuth 配置确认为前提，细节见[开发记录](../docs/V0.7.0-GITHUB-OAUTH.md)。

@@ -1,6 +1,23 @@
 # 接口与权限
 
-最新增量为 Sprint 06，下方历史章节保留；冲突时以最新章节为准。
+最新增量为 v0.7.0，下方历史章节保留；冲突时以最新章节为准。
+
+## v0.7.0 · GitHub OAuth 与只读体验
+
+| 方法 / 路径 | 行为 |
+| --- | --- |
+| GET `/api/auth/oauth/config` | 公开、no-store，仅 githubEnabled；不返回 Client Secret |
+| GET `/oauth2/authorization/github?challenge=…` | 顶层页面导航，challenge 为浏览器 verifier 的 S256；Spring 生成 state / provider PKCE，临时 Session |
+| GET `/login/oauth2/code/github` | GitHub 注册的后端回调；必须匹配 Session / state，成功后跳转固定前端 `/oauth/callback#code=…`，没有 JWT |
+| POST `/api/auth/oauth/exchange` | 公开 JSON `{code,verifier}`；60 秒、一次性、浏览器绑定，返回与密码登录相同 LoginResponse；no-store |
+
+兑换参数只允许 Base64URL；code 为 43 字，verifier 43–128 字。错误格式 400，已消费 / 过期 / verifier 不符 / 会话撤销 401，功能关闭 404。前端先移除 URL fragment 再兑换；外部 JWT 不能从 URL 读取。回调失败仅传 cancelled / state_invalid / disabled / failed 等白名单错误码。
+
+OAuth 身份仅使用 GitHub 数字 ID，永不按邮箱或 handle 自动关联。新建用户 password_login_enabled=false，角色仅 GUEST；原密码用户无变化，管理员明确重置后可以开启 OAuth 用户的密码入口。GET me / LoginResponse.user 新增可选 githubLogin / avatarUrl，旧字段兼容。
+
+GUEST 增加 inventory 模块元数据与库存页面，但 `/api/stock-transactions` 仍只允许 ADMIN / LAB_TECH / TEACHER / PURCHASER。GUEST 批次 JSON 不包含 createdBy / operatorName / remark / orderId / orderNo / lineNo；工作台 overview.activities 为空，dashboard 仅 PUBLIC 统计。用户 / 设置、领用、报表、照片与所有业务写入继续按原后端角色校验，不能自行提权。
+
+真实 GitHub App 的生产配置、临时会话与云平台验证边界见 [v0.7.0 记录](V0.7.0-GITHUB-OAUTH.md)。
 
 ## Sprint 06 · 用户、设置与仪表盘
 

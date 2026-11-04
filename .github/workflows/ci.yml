@@ -40,6 +40,15 @@ jobs:
         working-directory: frontend
       - run: npm run typecheck && npm run build
         working-directory: frontend
+      - name: Install isolated OAuth browser runtime
+        run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      - name: Create isolated OAuth browser database
+        run: docker exec "${{ job.services.postgres.id }}" psql -U caizhitong -d postgres -c 'CREATE DATABASE caizhitong_e2e_test'
+      - name: Mock GitHub OAuth browser flow (desktop and mobile)
+        run: bash scripts/test-oauth-ci.sh
+        env:
+          DB_URL: jdbc:postgresql://localhost:5432/caizhitong_e2e_test
       - name: Build backend Docker image
         run: docker build --tag caizhitong-backend:ci ./backend
       - name: Smoke Docker runtime within 512 MiB
