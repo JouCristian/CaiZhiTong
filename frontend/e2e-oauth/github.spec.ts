@@ -45,7 +45,7 @@ test('real provider redirect creates a read-only account, restores deep links, h
   await github(page, '/inventory')
   await expect(page.getByRole('heading', { name: '库存管理', exact: true })).toBeVisible()
   await expect(page.getByText('公开体验·合成电阻', { exact: true }).first()).toBeVisible()
-  expect(callbackUrls.join(' ')).not.toMatch(/eyJ|accessToken|access_token/)
+  expect(callbackUrls.join(' ')).not.toMatch(/accessToken|access_token|eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/)
   await expect(page.getByRole('tab', { name: '库存流水' })).toHaveCount(0)
   const stored = await page.evaluate(() => ({ token: sessionStorage.getItem('caizhitong.session'), flow: sessionStorage.getItem('caizhitong.oauth.flow'), hash: location.hash }))
   expect(stored.token?.split('.')).toHaveLength(3); expect(stored.flow).toBeNull(); expect(stored.hash).toBe('')

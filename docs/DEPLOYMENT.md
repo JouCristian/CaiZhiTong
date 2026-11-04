@@ -35,7 +35,7 @@ JDBC URL 不嵌入用户名或密码。`cloud` profile 在迁移前拒绝未启�
 
 云端默认仅在 `caizhitong` Schema 创建业务表与 Flyway 历史，业务连接也使用同一 Schema；允许以 `caizhitong_` 开头的受限自定义名称。运行 Schema 与迁移 Schema 必须相同，迁移 Schema 只能有一个。不会向 Supabase 的 auth、storage、extensions 或 public Schema 写入业务表。
 
-V1–V6 不改写、不新增版本，仅在新私有 Schema 原样执行。始终启用 validate-on-migrate、禁用 clean；不使用 repair、关闭校验或删平台对象来掩盖问题。新建 Schema 时 Flyway 可能额外记录一条 Schema 创建标记，它不是 V7。
+v0.6.0 初始部署原样执行 V1–V6，v0.7.0 仅追加 V7，不改写旧脚本。始终启用 validate-on-migrate、禁用 clean；不使用 repair、关闭校验或删平台对象来掩盖问题。新建 Schema 时的非版本创建标记不计入迁移版本。
 
 ### Data API 防护
 
@@ -75,7 +75,7 @@ V1–V6 不改写、不新增版本，仅在新私有 Schema 原样执行。始�
 现有服务名 caizhitong-api，Free，Singapore。不要重复创建；收费磁盘、套餐或资源升级需账户持有人确认。
 
 - 仓库 `JouCristian/CaiZhiTong`，分支 main，Runtime Docker。
-- Docker build context `backend`；Dockerfile 使用控制台要求的仓库相对路径 `backend/Dockerfile`。本地等价命令：`docker build -t caizhitong-backend:0.6.0 ./backend`。
+- Docker build context `backend`；Dockerfile 使用控制台要求的仓库相对路径 `backend/Dockerfile`。本地等价命令：`docker build -t caizhitong-backend:0.7.0 ./backend`。
 - 健康检查 `/actuator/health`。cloud profile 优先 SERVER_PORT，其次平台 PORT，默认 10000；不要把后端作为 npm / Vite 服务启动。
 - 环境设置为 cloud profile、Supabase 模式、独立 DB / Flyway 配置与新 JWT 密钥。JWT_SECRET 使用新生成、Base64 解码至少 32 字节的随机值，不复用本地密钥。
 - 镜像以非 root 用户运行，JDK 17 容器感知堆上限为内存的 40%，Serial GC，限制 Metaspace / Code Cache / Direct Memory；cloud profile 限制 Tomcat 线程，数据库池默认最多 3 个连接。

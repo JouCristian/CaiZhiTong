@@ -2,7 +2,7 @@
 
 后续 Sprint 应追加章节，保留本轮事实、失败修复与验收边界。
 
-当前迭代：[Sprint 02 · 材料分类与档案](SPRINT-02.md)。下方保留 Sprint 01 的开发过程。
+当前迭代：[v0.7.0 · GitHub OAuth 与只读体验](V0.7.0-GITHUB-OAUTH.md)。下方保留全部 Sprint 与部署历史。
 
 ## Sprint 01 · 2026-11-03
 
@@ -222,6 +222,7 @@ CI 增加真实 Docker 构建及 512 MiB 容器启动检查，远程结果以实
 经用户授权，使用现有 Supabase 项目和私有桶，创建 Render Free 后端与 Vercel Hobby 前端。真实 SSL Session pooler、独立 caizhitong Schema、原样六版 Flyway、受控管理员和私有照片均已通过云端业务验收；生产初始化随后关闭并移除一次性密码。没有导入本地学生数据或创建付费资源。
 
 生产前端 https://caizhitong-eight.vercel.app，后端 https://caizhitong-api.onrender.com。35 个业务 HTTP 检查覆盖完整库存链路、六种报表及权限；重部署后余额 82 和照片哈希一致。桌面全部菜单与手机登录 / 退出通过真实浏览器。补充前端可配置等待与长等待提示，兼容实际观察到的 Free 冷启动时间，保留本地默认 12 秒。完整平台配置、回归和发布证据见 [真实云部署记录](CLOUD-DEPLOYMENT-02.md)。
-# v0.7.0 · GitHub OAuth 登录与公开体验 · 2026-11-04
+
+## v0.7.0 · GitHub OAuth 登录与公开体验 · 2026-11-04
 
 在 feat/github-oauth-login 分支复用原 JWT、用户和角色体系，新增 Spring OAuth2 Client、V7 稳定身份关联、浏览器 verifier 绑定的一次性交换码。默认 GUEST 只读，保留管理员密码登录与原实时授权。设计、配置步骤及逐步更新的实际验证结果见 [v0.7.0 开发记录](V0.7.0-GITHUB-OAUTH.md)。生产 OAuth App 和真实身份初始化尚未执行。

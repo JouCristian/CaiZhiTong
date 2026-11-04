@@ -38,7 +38,7 @@ class GithubOAuthIntegrationTest {
     @Autowired org.springframework.security.crypto.password.PasswordEncoder passwords;
     final Set<String> ids=ConcurrentHashMap.newKeySet();
     final Set<Long> passwordUsers=new HashSet<>();
-    String id(){String id="77"+Long.toUnsignedString(ThreadLocalRandom.current().nextLong()).substring(0,15);ids.add(id);return id;}
+    String id(){String id="77"+ThreadLocalRandom.current().nextLong(1_000_000_000_000_000L,9_999_999_999_999_999L);ids.add(id);return id;}
     @BeforeAll void guard(){assertThat(db.queryForObject("SELECT current_database()",String.class)).endsWith("_test");}
     @AfterAll void clean(){for(String id:ids){var users=db.queryForList("DELETE FROM oauth_identity WHERE provider='github' AND provider_user_id=? RETURNING user_id",Long.class,id);for(Long user:users)db.update("DELETE FROM sys_user WHERE id=?",user);}for(Long user:passwordUsers)db.update("DELETE FROM sys_user WHERE id=?",user);PROVIDER.close();}
     record Flow(MockHttpSession session,String callback,String verifier){}
@@ -55,7 +55,7 @@ class GithubOAuthIntegrationTest {
         return new Flow((MockHttpSession)start.getRequest().getSession(false),response.headers().firstValue("location").orElseThrow(),verifier);
     }
     String callback(Flow flow)throws Exception {var p=GithubMockProvider.query(URI.create(flow.callback).getRawQuery());return mvc.perform(get("/login/oauth2/code/github").params(new org.springframework.util.LinkedMultiValueMap<>(){{p.forEach((k,v)->add(k,v));}}).session(flow.session)).andExpect(status().is3xxRedirection()).andExpect(header().string("Cache-Control","no-store")).andReturn().getResponse().getRedirectedUrl();}
-    String ticket(Flow flow)throws Exception {String redirect=callback(flow);assertThat(redirect).startsWith("https://caizhitong-eight.vercel.app/oauth/callback#code=").doesNotContain("accessToken","eyJ");return redirect.substring(redirect.indexOf("#code=")+6);}
+    String ticket(Flow flow)throws Exception {String redirect=callback(flow);assertThat(redirect).startsWith("https://caizhitong-eight.vercel.app/oauth/callback#code=").doesNotContain("accessToken");assertThat(URI.create(redirect).getFragment()).matches("code=[A-Za-z0-9_-]{43}");return redirect.substring(redirect.indexOf("#code=")+6);}
     ResultActions exchange(String code,String verifier)throws Exception {return mvc.perform(post("/api/auth/oauth/exchange").contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsBytes(Map.of("code",code,"verifier",verifier))));}
     JsonNode login(String id)throws Exception {var f=flow(id,"synthetic-user","Synthetic visitor","synthetic@example.test");return json.readTree(exchange(ticket(f),f.verifier).andExpect(status().isOk()).andReturn().getResponse().getContentAsString()).get("data");}
 

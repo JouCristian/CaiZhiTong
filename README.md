@@ -64,7 +64,7 @@
 | --- | --- |
 | 前端 | React 19、TypeScript 5.9、Vite 7、Ant Design 5、React Router 7、Decimal.js |
 | 后端 | Java 17、Spring Boot 3.5、Spring Security、JWT、MyBatis-Plus、Spring JDBC |
-| 数据 | PostgreSQL 15、Flyway V1–V6、NUMERIC / BigDecimal |
+| 数据 | PostgreSQL 15、Flyway V1–V7、NUMERIC / BigDecimal |
 | 文件与通知 | Apache POI、PDFBox、OFL 中文字体、ZXing、ImageIO / WebP、Jakarta Mail |
 | 验证 | JUnit / MockMvc、真实 PostgreSQL、Playwright 桌面 / 移动浏览器 |
 
@@ -144,7 +144,7 @@ npm.cmd run build
 npm.cmd run preview -- --port 5173 --strictPort
 ```
 
-Vite preview 继承本地 `/api` 代理；这仅供本地验收，实际托管按部署说明配置。本次最终演示在 5173 使用生产资源预览，后端运行已验证的 0.6.0 JAR。
+Vite preview 继承本地 `/api` 代理；这仅供本地验收，实际托管按部署说明配置。后端按当前工程版本启动，云端功能启用状态见对应部署与开发记录。
 
 ### 演示账户
 
@@ -196,6 +196,7 @@ Get-Content ./.env | Select-String '^DEMO_(ADMIN|LAB|STUDENT)_PASSWORD='
 | V4 | 领用单、月度额度、价格快照 |
 | V5 | 归还、报废、附件、预警、邮件、课程 |
 | V6 | 登录时间、会话撤销版本、全局设置 |
+| V7 | GitHub 稳定身份、一次性交换码、OAuth 账户密码入口开关 |
 
 配置模板为根 `.env.example` 与 `frontend/.env.example`。后端必需 DB_URL、DB_USERNAME、DB_PASSWORD、JWT_SECRET；密钥解码至少 32 随机字节。CORS_ALLOWED_ORIGINS 为允许来源，PUBLIC_WEB_URL 用于二维码与邮件链接。
 
