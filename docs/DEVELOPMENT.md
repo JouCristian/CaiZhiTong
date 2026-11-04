@@ -226,3 +226,5 @@ CI 增加真实 Docker 构建及 512 MiB 容器启动检查，远程结果以实
 ## v0.7.0 · GitHub OAuth 登录与公开体验 · 2026-11-04
 
 在 feat/github-oauth-login 分支复用原 JWT、用户和角色体系，新增 Spring OAuth2 Client、V7 稳定身份关联、浏览器 verifier 绑定的一次性交换码。默认 GUEST 只读，保留管理员密码登录与原实时授权。设计、配置步骤及逐步更新的实际验证结果见 [v0.7.0 开发记录](V0.7.0-GITHUB-OAUTH.md)。生产 OAuth App 和真实身份初始化尚未执行。
+
+本地最终 Maven 189/189、原桌面 / 手机 64/64、OAuth 桌面 / 手机 10/10，通过真实隔离 PostgreSQL 与回环 Mock Provider。修复回调 hash 状态、按钮辅助名称和入库浮层 / 测试定位，未放宽业务断言；补强 GUEST 库存只读与报废私有接口的权限边界。生产启用继续等待 OAuth App 的账户持有人配置和确认。

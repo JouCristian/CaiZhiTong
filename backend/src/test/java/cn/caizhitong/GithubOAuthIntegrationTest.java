@@ -122,7 +122,7 @@ class GithubOAuthIntegrationTest {
     @Test void defaultGuestReadsInventoryButCannotWriteOrReadPrivateModules()throws Exception {
         var data=login(id());String token=data.get("accessToken").asText();
         for(String path:List.of("/api/materials","/api/stocks","/api/workspace/dashboard"))mvc.perform(get(path).header("Authorization","Bearer "+token)).andExpect(status().isOk());
-        for(String path:List.of("/api/users","/api/settings","/api/issues","/api/returns","/api/stock-transactions","/api/reports/funding"))mvc.perform(get(path).header("Authorization","Bearer "+token)).andExpect(status().isForbidden());
+        for(String path:List.of("/api/users","/api/settings","/api/issues","/api/returns","/api/stock-transactions","/api/scraps","/api/scraps/1","/api/scraps/attachments/1","/api/reports/funding"))mvc.perform(get(path).header("Authorization","Bearer "+token)).andExpect(status().isForbidden());
         var writes=Map.of(
             "/api/material-categories",Map.of("name","Synthetic forbidden"),
             "/api/materials",Map.of("categoryId",999,"name","Synthetic forbidden","unit","piece","unitPrice","1","safeStock","0","status","ACTIVE"),
