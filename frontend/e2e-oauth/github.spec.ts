@@ -79,12 +79,16 @@ test('real provider redirect creates a read-only account, restores deep links, h
   await logout(page); expect(await page.evaluate(() => sessionStorage.getItem('caizhitong.session'))).toBeNull()
 })
 test('GitHub ID remains stable after profile rename and email change', async ({ page, request }) => {
+  await page.route('https://avatars.githubusercontent.com/**', route => route.abort())
   const id = identity(); await profile(request, id); await github(page)
   const first = await page.evaluate(() => JSON.parse(atob(sessionStorage.getItem('caizhitong.session')!.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).sub as string)
   await logout(page)
-  await profile(request, id, { login: 'renamed-synthetic', email: 'changed@example.test' }); await github(page)
+  await profile(request, id, { login: 'renamed-synthetic', email: 'changed@example.test', avatar_url: 'https://avatars.githubusercontent.com/u/990000001?v=5' }); await github(page)
   const next = await page.evaluate(() => JSON.parse(atob(sessionStorage.getItem('caizhitong.session')!.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).sub as string)
   expect(next).toBe(first)
+  const token = await page.evaluate(() => sessionStorage.getItem('caizhitong.session'))
+  const me = (await (await request.get('/api/auth/me', { headers: { Authorization: 'Bearer ' + token } })).json()).data
+  expect(me.avatarUrl).toBe('https://avatars.githubusercontent.com/u/990000001?v=5')
   await page.getByRole('button', { name: '账户菜单' }).click(); await expect(page.getByText('@renamed-synthetic', { exact: false })).toBeVisible()
 })
 test('cancelled authorization, invalid state and missing exchange context have clear safe errors', async ({ page, request }) => {

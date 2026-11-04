@@ -45,7 +45,10 @@ class GithubOAuthIntegrationTest {
     @AfterAll void clean(){for(String id:ids){var users=db.queryForList("DELETE FROM oauth_identity WHERE provider='github' AND provider_user_id=? RETURNING user_id",Long.class,id);for(Long user:users)db.update("DELETE FROM sys_user WHERE id=?",user);}for(Long user:passwordUsers)db.update("DELETE FROM sys_user WHERE id=?",user);PROVIDER.close();}
     record Flow(MockHttpSession session,String callback,String verifier){}
     Flow flow(String id,String login,String name,String email)throws Exception {
-        PROVIDER.profile.set(new GithubMockProvider.Profile(id,login,name,"https://avatars.githubusercontent.com/u/7000001?v=4",email));
+        return flow(id,login,name,email,"https://avatars.githubusercontent.com/u/7000001?v=4");
+    }
+    Flow flow(String id,String login,String name,String email,String avatar)throws Exception {
+        PROVIDER.profile.set(new GithubMockProvider.Profile(id,login,name,avatar,email));
         String verifier="v".repeat(43);
         var start=mvc.perform(get("/oauth2/authorization/github").param("challenge",OAuthExchangeService.challenge(verifier)))
             .andExpect(status().is3xxRedirection()).andReturn();
@@ -73,9 +76,10 @@ class GithubOAuthIntegrationTest {
     }
     @Test void stableIdSurvivesUsernameAndEmailChangesWithoutTakingOverPasswordAccounts()throws Exception {
         String id=id();var first=login(id);long user=first.at("/user/id").asLong();
-        var f=flow(id,"renamed-synthetic","Changed name","changed@example.test");
+        var f=flow(id,"renamed-synthetic","Changed name","changed@example.test","https://avatars.githubusercontent.com/u/7000001?v=5");
         var next=json.readTree(exchange(ticket(f),f.verifier).andExpect(status().isOk()).andReturn().getResponse().getContentAsString()).get("data");
         assertThat(next.at("/user/id").asLong()).isEqualTo(user);assertThat(next.at("/user/githubLogin").asText()).isEqualTo("renamed-synthetic");
+        assertThat(next.at("/user/avatarUrl").asText()).isEqualTo("https://avatars.githubusercontent.com/u/7000001?v=5");
         assertThat(db.queryForObject("SELECT count(*) FROM oauth_identity WHERE provider_user_id=?",Integer.class,id)).isEqualTo(1);
         assertThat(db.queryForObject("SELECT email FROM sys_user WHERE id=?",String.class,user)).isNull();
     }
