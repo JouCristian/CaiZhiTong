@@ -42,15 +42,28 @@
 | CORS / SPA / HTTPS | 精确来源通过，外站拒绝；Vercel /materials 深链返回应用，真实浏览器可恢复登录 |
 | 浏览器 | 桌面九个业务菜单、工作台、批次二维码深链、刷新；手机登录、工作台与退出均通过 |
 
-实际截图：[云工作台](screenshots/cloud-dashboard-desktop.png)、[手机工作台](screenshots/cloud-dashboard-mobile.png)、[材料管理](screenshots/cloud-materials-desktop.png)。截图来自真实部署，无密码或令牌。
+实际截图：[云登录](screenshots/cloud-login-desktop.png)、[手机登录](screenshots/cloud-login-mobile.png)、[云工作台](screenshots/cloud-dashboard-desktop.png)、[手机工作台](screenshots/cloud-dashboard-mobile.png)、[材料管理](screenshots/cloud-materials-desktop.png)。截图来自真实部署，无密码或令牌。
 
-Render 首次 Spring 启动约 152 秒，后续约 116 秒。首次导出后观测内存约 362 MiB，低于 512 MiB；验收窗口未发现 OOM 反复重启，不代表长期稳定性或负载测试。旧实例在滚动部署后的正常 graceful shutdown 不计为故障重启。
+Render 首次 Spring 启动约 152 秒，后续约 116 秒。验收窗口观测内存最高约 364 MiB，低于 512 MiB；未发现 OOM 反复重启，不代表长期稳定性或负载测试。旧实例在滚动部署后的正常 graceful shutdown 不计为故障重启。
 
 本次补充前端 VITE_API_TIMEOUT_MS（默认 12 秒，生产 240 秒，上限 300 秒）、登录长等待提示和生产账户说明；业务契约、数据库迁移、本地存储默认行为均不变。这样在 Free 实例休眠唤醒时，页面不会固定于 12 秒提前中断。
 
 ## 回归与发布证据
 
-前端类型检查、生产构建通过；原有隔离数据库浏览器测试 **64/64**（7.7 分钟），五组真实 API 冒烟通过。本轮未改变后端源码，发布后仍由 GitHub CI 重跑全部 173 项后端与 Docker 检查。CI / 自动部署的实际结果在本轮收尾时追加，不提前预写成功。
+前端类型检查、生产构建通过；原有隔离数据库浏览器测试 **64/64**（7.7 分钟），五组真实 API 冒烟通过。本轮未改变后端源码。
+
+源码与初始上线记录提交 **41f9c9c68f268f1b5b454218e3b0156cd49dc389** 的 [GitHub Actions 41766381423](https://github.com/JouCristian/CaiZhiTong/actions/runs/41766381423) 实际全部成功：Maven verify **173/173**（0 失败 / 错误 / 跳过）、前端 npm ci / typecheck / build、Docker 构建、512 MiB 容器健康 / 401 / OOM / 重启检查。
+
+该次普通 Git Push 已真实触发两个平台的 GitHub 自动部署，无需手动重建：
+
+| 平台 | 该提交的部署记录 | 结果 |
+| --- | --- | --- |
+| Render | dep-dbla8du7bikc73af07ng，trigger=new_commit | live |
+| Vercel | dpl_5eLxffiHJ9U17NWyEUtPi2jz2L67，GitHub main | READY / production |
+
+自动部署后再次执行 6 个持久化请求，原余额 82、材料和照片哈希保持一致；正式二维码域名正确。新前端延迟真实登录请求 14 秒后仍能完成登录，并于等待时显示提示，验证生产超时配置实际生效。桌面全菜单、手机登录 / 工作台 / 退出均通过；手机复验曾遇到一次页面连接关闭，重试后正常，另将云验收断言的默认 5 秒等待调整为 45 秒以等待实际数据，未放宽业务断言或模拟响应。
+
+生产前端公开的三份 JavaScript 资源逐项与本机真实后端秘密比对，未发现配置值；Vercel 项目仅配置公开的 API 地址与超时时间两个变量。两个源码安全审计脚本通过，原始 V1–V6 与既有提交无差异。最后的文档 / 截图收尾提交仍由相同 CI 与平台自动部署检查，最新实际状态以以下入口为准。
 
 另通过 16 个云端 HTTP 请求验证：合成账户临时分配实验员后可访问入库；改回学生后同一旧 JWT 立即 403；密码重置后旧 JWT 401、旧密码登录 401，新密码可登录；最终再次停用，旧 JWT 401。该账户和随机临时密码不对外发布。
 
