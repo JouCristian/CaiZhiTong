@@ -16,6 +16,7 @@ export default defineConfig({
     trace: 'off', screenshot: 'only-on-failure',
     // Use installed Chrome by default; CI can set E2E_BROWSER_CHANNEL=chromium after playwright install.
     channel: process.env.E2E_BROWSER_CHANNEL || 'chrome',
+    launchOptions: process.env.E2E_BROWSER_EXECUTABLE ? { executablePath: process.env.E2E_BROWSER_EXECUTABLE } : undefined,
   },
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 1080 } } },

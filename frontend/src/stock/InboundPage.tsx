@@ -1,21 +1,6 @@
+import { MotionDrawer as Drawer, DrawerPresence } from '../motion/MotionDrawer'
 import { useEffect, useRef, useState } from 'react'
-import {
-  Alert,
-  App,
-  Button,
-  DatePicker,
-  Descriptions,
-  Drawer,
-  Empty,
-  Form,
-  Input,
-  InputNumber,
-  Select,
-  Skeleton,
-  Space,
-  Table,
-  Tag,
-} from 'antd'
+import { Alert, App, Button, DatePicker, Descriptions, Empty, Form, Input, InputNumber, Select, Skeleton, Space, Table, Tag } from 'antd'
 import { DeleteOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons'
 import Decimal from 'decimal.js'
 import type { Dayjs } from 'dayjs'
@@ -717,7 +702,7 @@ export function InboundPage() {
           已提交单据保留完整历史。本轮不支持撤销或直接修改库存。
         </p>
       </section>
-      {creating && (
+      <DrawerPresence>{creating && (
         <InboundCreator
           onClose={() => setCreating(false)}
           onSaved={(d) => {
@@ -734,10 +719,10 @@ export function InboundPage() {
             setParams({ order: String(d.order.id) })
           }}
         />
-      )}
-      {selected !== undefined && (
+      )}</DrawerPresence>
+      <DrawerPresence>{selected !== undefined && (
         <OrderDrawer id={selected} onClose={() => setParams({})} />
-      )}
+      )}</DrawerPresence>
     </div>
   )
 }

@@ -1,3 +1,4 @@
+import { DrawerPresence } from '../motion/MotionDrawer'
 import { useAuth } from '../auth'
 import { useEffect, useState } from 'react'
 import {
@@ -441,9 +442,9 @@ export function InventoryPage() {
           库存由批次余额实时汇总。有效期仅作信息展示；包含真实入库与领用流水。
         </p>
       </section>
-      {selected !== undefined && (
+      <DrawerPresence>{selected !== undefined && (
         <StockDrawer itemId={selected} onClose={() => setSelected(undefined)} />
-      )}
+      )}</DrawerPresence>
     </div>
   )
 }

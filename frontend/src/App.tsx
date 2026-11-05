@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react'
-import type { ReactNode } from 'react'
+import { MotionDrawer as Drawer } from './motion/MotionDrawer'
+import { lazy, Suspense, useEffect, useState } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import type { MenuProps } from 'antd'
-import {
-  Alert, Button, Drawer, Form, Input, Menu, Result, Skeleton, Tooltip,
-} from 'antd'
+import { Alert, Button, Form, Input, Menu, Result, Skeleton, Tooltip } from 'antd'
 import {
   ArrowRightOutlined, CheckOutlined, ClockCircleOutlined, CompassOutlined,
   DeploymentUnitOutlined, FileTextOutlined, FolderOpenOutlined,
@@ -31,10 +30,13 @@ import { useSystem } from './system'
 import { dateTime } from './materials/types'
 import { GithubLogin, OAuthCallback } from './OAuth'
 import { DemoPage } from './demo/DemoPage'
+import { useAmbientMotion } from './motion/useAmbientMotion'
+
+const LoginStory = lazy(() => import('./motion/LoginExperience').then(module => ({ default: module.LoginStory })))
 
 function Brand({ compact = false }: { compact?: boolean }) {
   const { info } = useSystem()
-  return <div className="brand"><span className="brand-symbol"><DeploymentUnitOutlined /></span>{!compact && <div><strong title={info.systemName}>{info.systemName}</strong><span title={info.systemDescription}>{info.systemDescription}</span></div>}</div>
+  return <div className={'brand' + (compact ? ' brand-compact' : '')}><span className="brand-symbol"><DeploymentUnitOutlined /></span><div className="brand-copy"><strong title={info.systemName}>{info.systemName}</strong><span title={info.systemDescription}>{info.systemDescription}</span></div></div>
 }
 function MaterialArt({ small = false }: { small?: boolean }) {
   return <div className={small ? 'material-art small' : 'material-art'} aria-hidden="true">
@@ -52,7 +54,11 @@ function Protected() {
   if (error) return <div className="standalone-result"><Result status="warning" title="暂时无法恢复登录" subTitle={error} extra={<><Button type="primary" onClick={() => void restore()}>重新连接</Button><Button onClick={logout}>返回登录</Button></>} /></div>
   return user ? <Outlet /> : <Navigate to="/login" replace state={loggedOut ? undefined : { from: location.pathname + location.search }} />
 }
+function StaticLoginStory() {
+  return <div className="login-story-content login-story-static"><h1>连接材料<br /><span>也连接每一次探索。</span></h1><p>让每一份材料，各得其所。</p><img src="/brand/material-mark-3d.svg" alt="材智通立体材料连接标识" width={800} height={560} /></div>
+}
 function Login() {
+  const animate = useAmbientMotion()
   const { info } = useSystem()
   const { user, loading, login, expired } = useAuth()
   const [submitting, setSubmitting] = useState(false)
@@ -79,7 +85,7 @@ function Login() {
     finally { setSubmitting(false) }
   }
   return <main className="login-page">
-    <section className="login-story"><Brand /><div className="login-story-content"><span className="quiet-label">让每一份材料，各得其所。</span><h1>连接材料，<br />也连接每一次探索。</h1><p>从材料档案到实验现场，<br />为有序、高效的实验室管理而设计。</p><MaterialArt /></div><div className="login-story-footer"><SafetyCertificateOutlined /> 清晰的权限 · 可靠的连接</div></section>
+    <section className="login-story"><Brand />{animate ? <Suspense fallback={<StaticLoginStory />}><LoginStory /></Suspense> : <StaticLoginStory />}</section>
     <section className="login-panel"><div className="login-form-wrap"><div className="mobile-brand"><Brand /></div><div className="login-heading"><span className="login-glyph"><LockOutlined /></span><h2>欢迎回到{info.systemName}</h2><p>登录账户，进入你的材料工作空间。</p></div>
       {expired && !error && <Alert type="info" showIcon message="登录已过期，请重新登录" className="form-alert" />}
       {error && <Alert type="error" showIcon message={error} className="form-alert" />}
@@ -91,7 +97,7 @@ function Login() {
         <Form.Item label="密码" name="password" rules={[{ required: true, message: '请输入密码' }, { max: 72, message: '密码最多 72 个字符' }]}><Input.Password prefix={<LockOutlined />} placeholder="请输入密码" autoComplete="current-password" maxLength={72} /></Form.Item>
         <Button type="primary" htmlType="submit" block size="large" aria-label="登录工作空间" loading={submitting} className="login-submit">登录工作空间 <ArrowRightOutlined aria-hidden /></Button>
       </Form>}
-      <div className="login-note"><InfoCircleOutlined />{import.meta.env.PROD ? <p>请使用管理员分配的账户登录。<br />如需访问权限，请联系系统管理员。</p> : <p>本地演示支持管理员、实验员和学生账户。<br />请使用开发环境中生成的凭据登录。</p>}</div>
+      <div className="login-note"><InfoCircleOutlined />{githubAvailable ? <p>GitHub 账户进入公开只读演示。<br />业务成员可使用已分配的账号密码。</p> : import.meta.env.PROD ? <p>请使用管理员分配的账户登录。<br />如需访问权限，请联系系统管理员。</p> : <p>本地演示支持管理员、实验员和学生账户。<br />请使用开发环境中生成的凭据登录。</p>}</div>
       <div className="login-security"><SafetyCertificateOutlined /> 密码经加密存储，访问受角色权限保护</div>
     </div><footer>材智通 CaiZhiTong <span>·</span> 智慧材料库数字化管理系统</footer></section>
   </main>
@@ -114,15 +120,15 @@ function Shell() {
     { label: '系统管理', keys: ['users', 'settings'] },
   ]
   const items: MenuProps['items'] = groups.flatMap<NonNullable<MenuProps['items']>[number]>(group => {
-    const children = allowed.filter(m => group.keys.includes(m.key)).map(m => ({ key: m.key, icon: <m.icon />, label: m.title }))
+    const children = allowed.filter(m => group.keys.includes(m.key)).map(m => ({ key: m.key, icon: <m.icon aria-hidden />, label: m.title, className: 'workspace-nav-item', style: { '--nav-index': allowed.findIndex(item => item.key === m.key) } as CSSProperties }))
     if (!children.length) return []
-    return collapsed ? children : [{ type: 'group' as const, label: group.label, children }]
+    return [{ type: 'group' as const, label: group.label, children }]
   })
-  const nav = <><Link to="/dashboard" className="brand-link" aria-label="材智通工作台"><Brand compact={collapsed} /></Link><nav aria-label="主导航"><Menu mode="inline" inlineCollapsed={collapsed} selectedKeys={current ? [current.key] : []} items={items} onClick={({ key }) => navigate('/' + key)} /></nav><div className="sidebar-bottom">{!collapsed && <div className="workspace-version"><span className="version-dot" /><div><strong>{user.modules.includes('demo/dashboard') ? '公开演示空间' : '实验室工作空间'}</strong><span>{user.modules.includes('demo/dashboard') ? '独立合成数据 · 只读' : 'Sprint 06 · 完整工作空间'}</span></div></div>}<Tooltip title={collapsed ? '展开侧边栏' : '收起侧边栏'}><Button className="collapse-button" type="text" aria-label={collapsed ? '展开侧边栏' : '收起侧边栏'} icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />} onClick={() => setCollapsed(!collapsed)} /></Tooltip></div></>
+  const nav = <><Link to="/dashboard" className="brand-link" aria-label="材智通工作台"><Brand compact={collapsed} /></Link><nav aria-label="主导航"><Menu mode="inline" inlineCollapsed={collapsed} selectedKeys={current ? [current.key] : []} items={items} onClick={({ key }) => navigate('/' + key)} /></nav><div className="sidebar-bottom">{<div className="workspace-version"><span className="version-dot" /><div><strong>{user.modules.includes('demo/dashboard') ? '公开演示空间' : '实验室工作空间'}</strong><span>{user.modules.includes('demo/dashboard') ? '独立合成数据 · 只读' : `v${info.version} · 权限已同步`}</span></div></div>}<Tooltip title={collapsed ? '展开侧边栏' : '收起侧边栏'}><Button className="collapse-button" type="text" aria-label={collapsed ? '展开侧边栏' : '收起侧边栏'} icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />} onClick={() => setCollapsed(!collapsed)} /></Tooltip></div></>
   return <div className={'app-shell' + (collapsed ? ' is-collapsed' : '')}><a className="skip-link" href="#main-content">跳转至内容</a><aside className="sidebar">{nav}</aside>
     <Drawer title="工作空间导航" open={mobileOpen} onClose={() => setMobileOpen(false)} placement="left" styles={{ body: { padding: 0 } }} width={280}><div className="drawer-nav">{nav}</div></Drawer>
     <div className="app-body"><header className="toolbar"><div className="toolbar-left"><Button type="text" className="mobile-menu" aria-label="打开导航" icon={<MenuOutlined />} onClick={() => { setCollapsed(false); setMobileOpen(true) }} /><span className="toolbar-workspace">{user.modules.includes('demo/dashboard') ? '公开演示空间' : '材料工作空间'}</span><span className="toolbar-separator">/</span><span>{current?.title || '页面未找到'}</span></div><AccountMenu user={user} onLogout={() => { logout(); navigate('/login', { replace: true }) }} /></header>
-      <main id="main-content" className="main-content"><Outlet /></main><footer className="app-footer"><span>材智通 · 为实验室的每一天</span><span>Sprint 06 <span className="footer-dot">·</span> v{info.version}</span></footer></div></div>
+      <main id="main-content" className="main-content"><Outlet /></main><footer className="app-footer"><span>材智通 · 为实验室的每一天</span><span>CaiZhiTong <span className="footer-dot">·</span> v{info.version}</span></footer></div></div>
 }
 function PageHeading({ title, description, extra }: { title: string; description: string; extra?: ReactNode }) {
   return <div className="page-heading"><div><h1>{title}</h1><p>{description}</p></div>{extra}</div>

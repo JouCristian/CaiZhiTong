@@ -1,3 +1,4 @@
+import { DrawerPresence } from '../motion/MotionDrawer'
 import type { Stock, Page } from '../stock/types'
 import { useEffect, useMemo, useState } from 'react'
 import type { Key } from 'react'
@@ -115,7 +116,7 @@ export function MaterialList({ categories, facets, metaLoading, canWrite, admin,
         pagination={{ current: filters.page, pageSize: filters.size, total: page.total, showSizeChanger: true, pageSizeOptions: [10, 20, 50, 100], showTotal: total => '共 ' + total + ' 条', onChange: (current, size) => setFilters(f => ({ ...f, page: size === f.size ? current : 1, size })), size: 'small' }} />
       <div className="material-list-foot">档案不记录可手动修改的库存数量。库存来自批次余额汇总，可在档案详情中查看。</div>
     </section>
-    {editor && <MaterialDrawer key={editor.mode + ':' + (editor.id || 'new')} editor={editor} categories={categories} canWrite={canWrite} onClose={() => setEditor(null)} onSaved={(_, created) => { setEditor(null); if (created) reset(); onChanged() }} />}
+    <DrawerPresence>{editor && <MaterialDrawer key={editor.mode + ':' + (editor.id || 'new')} editor={editor} categories={categories} canWrite={canWrite} onClose={() => setEditor(null)} onSaved={(_, created) => { setEditor(null); if (created) reset(); onChanged() }} />}</DrawerPresence>
   </div>
 }
 

@@ -1,0 +1,109 @@
+/* CaiZhiTong: restrained product chrome, expressive login-only motion. */
+.login-page { grid-template-columns: 56% 44%; }
+.login-page .login-story { min-height: 760px; padding: 34px clamp(30px, 4.3vw, 74px) 0; background: #f2f5fa; border-right: 1px solid #e8edf4; }
+.login-story .brand-copy { min-width: 0; }
+.login-page .login-story-content { margin: 46px auto 0; max-width: 620px; text-align: center; flex: 1; }
+.login-story .login-art-heading { line-height: 1.18; letter-spacing: -.03em; }
+.login-particle-shell { display: block; height: clamp(74px, 7.2vw, 98px); position: relative; }
+.login-particle-fallback { display: block; font-size: clamp(52px, 5.2vw, 78px); font-weight: 650; color: #132847; }
+.login-title-particles.particle-text { min-height: 0; height: 100%; position: absolute; inset: 0; }
+.login-particle-shell:has(.particle-text[data-ready]) > .login-particle-fallback { opacity: 0; }
+.login-heading-second { display: block; font-size: clamp(28px, 2.8vw, 42px); font-weight: 550; color: #273c59; }
+.login-story-caption { min-height: 32px; margin-top: 22px; font-size: 15px; line-height: 2; color: #50657f; }
+.material-veil { position: relative; width: 100%; height: clamp(250px, 34vh, 390px); margin: 3px auto 0; }
+.material-veil-fallback { position: absolute; inset: 0; height: 100%; width: 100%; object-fit: contain; }
+.material-veil > .dither-veil { position: absolute; inset: 0; }
+.login-page .login-visual-note { margin-top: 0; font-size: 12px; color: #5c718d; }
+.login-curve { height: 100px; width: calc(100% + 100px); margin: 5px -50px 0; overflow: hidden; display: grid; place-items: center; }
+.login-curve .curved-loop-jacket { min-height: 0; height: 100%; opacity: .66; }
+.login-curve .curved-loop-svg { height: 100%; aspect-ratio: auto; }
+.login-curve > span { font-size: 12px; color: #5c718d; }
+.login-story-static h1 { font-size: clamp(52px, 5.2vw, 78px); line-height: 1.35; color: #132847; }
+.login-story-static h1 > span { font-size: clamp(28px, 2.8vw, 42px); color: #273c59; font-weight: 550; }
+.login-story-static > img { width: 100%; height: clamp(250px, 34vh, 390px); object-fit: contain; }
+.login-page .login-panel { padding: 40px clamp(32px, 4vw, 68px) 25px; }
+.login-page .login-form-wrap { width: min(390px, 100%); padding: 24px 0; }
+.login-page .login-glyph { display: none; }
+.login-page .login-heading h2 { font-size: 28px; line-height: 1.5; }
+.login-page .login-heading p { margin: 8px 0 28px; line-height: 1.7; }
+.github-login .github-orbit-action.ant-btn { height: 112px; padding: 10px 14px 10px 22px; border-radius: 14px; border: 1px solid #d9e4f2; background: #f7faff; color: #153154; box-shadow: none; display: flex; justify-content: space-between; text-align: left; transition: background 180ms ease, border-color 180ms ease; }
+.github-login .github-orbit-action.ant-btn:hover:not(:disabled) { background: #edf4ff; border-color: #91b8ea; color: #0a54b0; }
+.github-login .github-orbit-action.ant-btn:active:not(:disabled) { background: #e4efff; }
+.github-login .github-orbit-action.ant-btn:disabled { background: #f7f8fa; color: #687586; border-color: #e5e9ef; }
+.github-action-copy { display: flex !important; flex-direction: column; gap: 7px; flex: 1; }
+.github-action-copy strong { font-size: 15px; font-weight: 600; }
+.github-action-copy > span { font-size: 11px; font-weight: 400; color: #536d8d; }
+.github-action-badge { display: block; position: relative; width: 86px; height: 86px; flex: 0 0 86px; }
+.login-orbit-ring { position: absolute; inset: 0; display: block; }
+.github-action-symbol { position: absolute; inset: 19px; border-radius: 50%; display: grid; place-items: center; background: #0066d6; color: #fff; font-size: 24px; transition: transform 220ms var(--ease-out); }
+.github-orbit-action:hover .github-action-symbol { transform: rotate(-7deg); }
+.github-orbit-action:disabled .github-action-symbol { background: #8695a9; }
+.login-page .github-login > p { text-align: left; padding-inline: 2px; margin-top: 9px; line-height: 1.65; }
+.login-page .password-login-toggle { margin: 5px 0 14px; font-size: 12px; }
+.login-page .ant-form-item { margin-bottom: 18px; }
+.login-page .login-note { padding: 12px 0; background: transparent; margin-top: 19px; border-top: 1px solid var(--line); border-radius: 0; }
+.login-page .login-note p { font-size: 11px; line-height: 1.8; }
+.login-page .login-security { margin-top: 13px; font-size: 10px; }
+
+/* Stable Ant Design menu sizing, including scrollbar and 150% browser zoom. */
+.app-shell { --sidebar-width: 256px; }
+.app-shell.is-collapsed { --sidebar-width: 80px; }
+.app-shell .sidebar { overflow: hidden; transition: width 340ms var(--ease-out); }
+.app-shell .app-body { min-width: 0; transition: margin-left 340ms var(--ease-out); }
+.app-shell .brand-link { padding: 25px 20px 21px; min-height: 94px; }
+.app-shell .brand { width: 100%; min-width: 0; gap: 11px; }
+.brand-copy { min-width: 0; transition: opacity 150ms ease, transform 240ms var(--ease-out); }
+.app-shell .brand-copy strong { white-space: nowrap; text-overflow: ellipsis; overflow: hidden; display: block; }
+.app-shell .brand-copy > span { font-size: 10px; letter-spacing: .3px; line-height: 1.6; max-width: 162px; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.app-shell .sidebar nav { min-width: 0; overflow-x: hidden; padding-inline: 10px; scrollbar-width: thin; }
+.app-shell .sidebar .ant-menu { width: 100%; min-width: 0; }
+.app-shell .sidebar .ant-menu-item { width: calc(100% - 8px); min-width: 0; }
+.app-shell .sidebar .ant-menu-item-group-title { white-space: nowrap; overflow: hidden; transition: opacity 120ms ease; }
+.app-shell .sidebar-bottom { position: relative; gap: 10px; padding: 17px 20px; min-height: 75px; overflow: hidden; }
+.app-shell .workspace-version { min-width: 0; overflow: hidden; white-space: nowrap; transition: opacity 120ms ease, transform 200ms var(--ease-out); }
+.app-shell .workspace-version > div { min-width: 0; overflow: hidden; }
+.app-shell .workspace-version strong, .app-shell .workspace-version div > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.app-shell .collapse-button { width: 36px; height: 36px; border: 1px solid transparent; border-radius: 10px; }
+.app-shell .collapse-button:hover { background: #e5ebf4; border-color: #d9e1ee; }
+.app-shell.is-collapsed .brand { gap: 0; }
+.app-shell.is-collapsed .brand-copy { width: 0; opacity: 0; transform: translateX(-8px); pointer-events: none; }
+.app-shell.is-collapsed .sidebar nav { padding-inline: 8px; }
+.app-shell.is-collapsed .sidebar .ant-menu-inline-collapsed { width: 100%; }
+.app-shell.is-collapsed .sidebar .ant-menu-item-group-title { height: 9px; padding: 0 !important; font-size: 0 !important; opacity: 0; }
+.app-shell.is-collapsed .sidebar .ant-menu-item { width: 100%; margin-inline: 0; padding-inline: 0 !important; display: flex; align-items: center; justify-content: center; }
+.app-shell.is-collapsed .sidebar .ant-menu-item .ant-menu-item-icon { margin-inline-end: 0; }
+.app-shell.is-collapsed .sidebar .ant-menu-title-content { flex: 0; width: 0; opacity: 0; margin: 0; }
+.app-shell.is-collapsed .sidebar-bottom { padding-inline: 22px; gap: 0; }
+.app-shell.is-collapsed .workspace-version { flex: 0; width: 0; opacity: 0; transform: translateX(-8px); pointer-events: none; }
+.sidebar .workspace-nav-item { animation: nav-item-enter 260ms var(--ease-out) both; animation-delay: calc(var(--nav-index, 0) * 16ms); }
+.app-shell:not(.is-collapsed) .sidebar .ant-menu-title-content { animation: nav-item-enter 240ms var(--ease-out) both; animation-delay: calc(var(--nav-index, 0) * 12ms); }
+@keyframes nav-item-enter { from { opacity: .35; transform: translate3d(-9px, 0, 0); } to { opacity: 1; transform: translate3d(0, 0, 0); } }
+.drawer-nav .workspace-nav-item { animation: nav-item-enter 320ms var(--ease-out) both; animation-delay: calc(var(--nav-index, 0) * 18ms); }
+.drawer-nav .brand-link { min-width: 0; }
+.drawer-nav .brand-copy { max-width: 175px; overflow: hidden; }
+.drawer-nav nav { overflow-x: hidden; }
+
+@media (min-width: 960px) and (max-height: 800px) {
+  .login-page .login-story { min-height: 720px; }
+  .login-page .login-story-content { margin-top: 23px; }
+  .material-veil, .login-story-static > img { height: 255px; }
+  .login-curve { height: 70px; }
+}
+@media (max-width: 959px) {
+  .login-page { display: block; }
+  .login-page .login-story { display: none; }
+  .login-page .login-panel { min-height: 100dvh; padding: 28px 25px 20px; }
+  .login-page .login-form-wrap { padding: 10px 0; }
+  .login-page .mobile-brand { display: block; margin-bottom: 32px; }
+  .login-page .login-heading h2 { font-size: 26px; }
+  .login-page .github-orbit-action.ant-btn { height: 104px; }
+}
+@media (max-width: 760px) {
+  .app-shell .app-body { margin-left: 0; }
+  .czt-drawer .ant-drawer-content { border-radius: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-shell .sidebar, .app-shell .app-body, .app-shell .brand-copy, .app-shell .workspace-version { transition: none !important; }
+  .workspace-nav-item, .app-shell .sidebar .ant-menu-title-content { animation: none !important; }
+  .github-orbit-action:hover .github-action-symbol { transform: none; }
+}

@@ -6,6 +6,7 @@ import { AuthProvider } from './auth'
 import { App } from './App'
 import { SystemProvider } from './system'
 import './styles.css'
+import './motion/login-experience.css'
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <ConfigProvider locale={zhCN} theme={{
     token: {
