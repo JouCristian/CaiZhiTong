@@ -30,3 +30,4 @@ for target in http://127.0.0.1:9098/health http://127.0.0.1:8081/actuator/health
   if [[ "$ready" != true ]]; then echo 'Isolated OAuth browser server did not become ready.' >&2; exit 1; fi
 done
 npm --prefix frontend test
+E2E_OAUTH=0 npm --prefix frontend test -- e2e/ui-motion.spec.ts

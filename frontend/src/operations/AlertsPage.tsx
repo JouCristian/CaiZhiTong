@@ -1,17 +1,6 @@
+import { MotionDrawer as Drawer, DrawerPresence } from '../motion/MotionDrawer'
 import { useEffect, useState } from "react";
-import {
-  Alert,
-  App,
-  Button,
-  Descriptions,
-  Drawer,
-  Form,
-  Input,
-  Select,
-  Skeleton,
-  Space,
-  Tag,
-} from "antd";
+import { Alert, App, Button, Descriptions, Form, Input, Select, Skeleton, Space, Tag } from 'antd'
 import { ReloadOutlined } from "@ant-design/icons";
 import { useSearchParams, Link } from "react-router-dom";
 import { request } from "../api";
@@ -262,7 +251,7 @@ export function AlertsPage() {
           )}
         />
       </section>
-      {selected && (
+      <DrawerPresence>{selected && (
         <AlertDetail
           id={selected}
           manage={manage}
@@ -270,7 +259,7 @@ export function AlertsPage() {
           onClose={() => setParams({})}
           onSaved={refresh}
         />
-      )}
+      )}</DrawerPresence>
     </div>
   );
 }

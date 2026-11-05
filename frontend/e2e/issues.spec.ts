@@ -126,6 +126,9 @@ test('QR batch route recovers login, issues 20 of 800, persists history and down
     page.getByRole('heading', { name: d.order.issueNo, exact: true }),
   ).toBeVisible()
   await expect(page.getByRole('dialog')).toContainText('800 → 780 个')
+  await expect(page.locator('.czt-drawer:not(.ant-drawer-open) .ant-drawer-content-wrapper')).toHaveCount(0)
+  const detailOverlay = page.locator('.ant-drawer-open').filter({ has: page.getByRole('heading', { name: d.order.issueNo, exact: true }) })
+  await expect.poll(() => detailOverlay.evaluate(element => element === document.activeElement || element.contains(document.activeElement))).toBe(true)
   const download = page.waitForEvent('download')
   await page.getByRole('button', { name: '下载 PDF 凭证' }).click()
   expect((await download).suggestedFilename()).toBe(d.order.issueNo + '.pdf')

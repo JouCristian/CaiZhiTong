@@ -1,0 +1,18 @@
+:root { --ease-out: cubic-bezier(.22, 1, .36, 1); --drawer-duration: 360ms; }
+/* rc-motion must place the panel off-screen without a transition during its
+   start frame. A blanket !important transition animates that preparation too,
+   making the panel flash at its final position before entering. */
+.czt-drawer .ant-drawer-mask:is([class*="-appear-active"], [class*="-enter-active"], [class*="-leave-active"]) { transition: opacity 280ms ease !important; }
+.czt-drawer .ant-drawer-content-wrapper:is([class*="-appear-active"], [class*="-enter-active"], [class*="-leave-active"]) { transition: transform var(--drawer-duration) var(--ease-out), opacity var(--drawer-duration) var(--ease-out) !important; }
+.czt-drawer.ant-drawer-right .ant-drawer-content-wrapper { box-shadow: -8px 0 0 rgb(20 86 178 / .06), -16px 0 0 rgb(20 86 178 / .025); }
+.czt-drawer .ant-drawer-content { border-radius: 16px 0 0 16px; }
+.czt-drawer.ant-drawer-left .ant-drawer-content { border-radius: 0 16px 16px 0; }
+.czt-drawer .ant-drawer-header { padding: 23px 24px; }
+.czt-drawer .ant-drawer-body > :first-child { animation: drawer-content-in 300ms var(--ease-out) both; }
+.czt-drawer .ant-drawer-body > :nth-child(2) { animation: drawer-content-in 340ms 30ms var(--ease-out) both; }
+.czt-drawer .ant-drawer-body > :nth-child(3) { animation: drawer-content-in 340ms 50ms var(--ease-out) both; }
+@keyframes drawer-content-in { from { opacity: .5; transform: translate3d(16px, 0, 0); } to { opacity: 1; transform: translate3d(0, 0, 0); } }
+@media (prefers-reduced-motion: reduce) {
+  .czt-drawer .ant-drawer-mask, .czt-drawer .ant-drawer-content-wrapper { transition: none !important; }
+  .czt-drawer .ant-drawer-body > * { animation: none !important; }
+}

@@ -1,5 +1,6 @@
+import { MotionDrawer as Drawer } from '../motion/MotionDrawer'
 import { useEffect, useState } from 'react'
-import { Alert, App, Button, Descriptions, Drawer, Skeleton, Tag } from 'antd'
+import { Alert, App, Button, Descriptions, Skeleton, Tag } from 'antd'
 import { DownloadOutlined } from '@ant-design/icons'
 import { Link } from 'react-router-dom'
 import { request } from '../api'

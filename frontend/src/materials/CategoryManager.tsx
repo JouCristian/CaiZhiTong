@@ -1,6 +1,7 @@
+import { MotionDrawer as Drawer, DrawerPresence } from '../motion/MotionDrawer'
 import { useState } from 'react'
 import type { Key } from 'react'
-import { Alert, App, Button, Descriptions, Drawer, Empty, Form, Input, InputNumber, Skeleton, Tag, Tree, TreeSelect } from 'antd'
+import { Alert, App, Button, Descriptions, Empty, Form, Input, InputNumber, Skeleton, Tag, Tree, TreeSelect } from 'antd'
 import { DeleteOutlined, EditOutlined, FolderOutlined, PlusOutlined } from '@ant-design/icons'
 import type { DataNode } from 'antd/es/tree'
 import { request } from '../api'
@@ -67,7 +68,7 @@ export function CategoryManager({ categories, loading, admin, onChanged }: Props
         {selected.children.length > 0 || selected.materialCount > 0 ? <div className="detail-notice">该类目仍有子类或关联材料，受到删除保护。归档材料也保留分类关联。</div> : <div className="detail-notice">空类目可由管理员删除。调整父级时，系统会校验层级与循环引用。</div>}
       </> : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="创建首个大类，让材料有序归类">{admin && <Button onClick={() => openForm()}>创建首个类目</Button>}</Empty>}</section>
     </div>
-    {editing && <Drawer open title={editing.id ? '编辑类目' : '新增类目'} width="min(500px, 100vw)" onClose={() => !saving && setEditing(null)} maskClosable={!saving}
+    <DrawerPresence>{editing && <Drawer open title={editing.id ? '编辑类目' : '新增类目'} width="min(500px, 100vw)" onClose={() => !saving && setEditing(null)} maskClosable={!saving}
       footer={<div className="drawer-actions"><Button onClick={() => setEditing(null)} disabled={saving}>取消</Button><Button type="primary" loading={saving} onClick={() => form.submit()}>保存类目</Button></div>}>
       {error && <Alert type="error" showIcon message={error} className="form-alert" />}
       <div className="material-form-note">基础分类最多两层。可将大类设为父级，品牌与型号在材料表单中维护。</div>
@@ -77,7 +78,7 @@ export function CategoryManager({ categories, loading, admin, onChanged }: Props
         <Form.Item name="sortOrder" label="排序值" rules={[{ required: true }]} extra="数值越小，排列越靠前"><InputNumber min={0} max={9999} precision={0} /></Form.Item>
         <Form.Item name="description" label="描述" rules={[{ max: 2000 }]}><Input.TextArea rows={5} maxLength={2000} showCount placeholder="说明该类目适用的材料范围" /></Form.Item>
       </Form>
-    </Drawer>}
+    </Drawer>}</DrawerPresence>
   </>
 }
 

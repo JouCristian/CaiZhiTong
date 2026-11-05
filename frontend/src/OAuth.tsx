@@ -4,6 +4,7 @@ import { GithubOutlined } from '@ant-design/icons'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { apiUrl, request } from './api'
 import { useAuth } from './auth'
+import { OrbitRing } from './motion/OrbitRing'
 
 const FLOW = 'caizhitong.oauth.flow'
 type Flow = { verifier: string; target: string; started: number }
@@ -31,7 +32,7 @@ export function GithubLogin({ target, onAvailability }: { target: string; onAvai
     } catch { setError('无法发起安全授权，请使用 HTTPS 或本机地址打开网站后重试。'); setStarting(false) }
   }
   return <div className="github-login">
-    <Button type="primary" size="large" block aria-label="继续使用 GitHub" icon={<GithubOutlined aria-hidden />} loading={starting || loading} disabled={!available || loading} onClick={() => void start()}>继续使用 GitHub</Button>
+    <Button size="large" block className="github-orbit-action" aria-label="继续使用 GitHub" loading={starting || loading} disabled={!available || loading} onClick={() => void start()}><span className="github-action-copy"><strong>继续使用 GitHub</strong><span>进入公开演示空间</span></span><span className="github-action-badge"><OrbitRing /><span className="github-action-symbol"><GithubOutlined aria-hidden /></span></span></Button>
     {error ? <Alert type="warning" showIcon message={error} /> : <p>{loading ? '正在连接登录服务…' : available ? '首次登录创建只读体验账户，无需提供邮箱。' : 'GitHub 登录尚未启用，仍可使用账号密码登录。'}</p>}
   </div>
 }

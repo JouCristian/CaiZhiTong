@@ -1,3 +1,4 @@
+import { DrawerPresence } from '../motion/MotionDrawer'
 import { useEffect, useState } from 'react'
 import {
   Alert,
@@ -363,7 +364,7 @@ export function IssuesPage() {
           领用成功后即时扣减库存。个人月度额度由后端按业务时区计算，所有批次共享。
         </p>
       </section>
-      {creating && (
+      <DrawerPresence>{creating && (
         <IssueCreator
           code={code}
           onClose={() => {
@@ -378,13 +379,13 @@ export function IssuesPage() {
             setParams({ order: String(d.order.id) })
           }}
         />
-      )}
-      {selected !== undefined && (
+      )}</DrawerPresence>
+      <DrawerPresence>{selected !== undefined && (
         <IssueDetailDrawer
           id={selected}
           onClose={() => setParams(scope === 'all' ? { view: 'all' } : {})}
         />
-      )}
+      )}</DrawerPresence>
     </div>
   )
 }

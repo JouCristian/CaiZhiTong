@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="560" viewBox="0 0 800 560" fill="none">
+  <defs>
+    <linearGradient id="top" x1="-55" y1="-56" x2="48" y2="14" gradientUnits="userSpaceOnUse"><stop stop-color="#e2f3ff"/><stop offset=".42" stop-color="#72baff"/><stop offset="1" stop-color="#2878e3"/></linearGradient>
+    <linearGradient id="left" x1="-60" y1="-20" x2="4" y2="78" gradientUnits="userSpaceOnUse"><stop stop-color="#4c99ed"/><stop offset=".36" stop-color="#0863cc"/><stop offset="1" stop-color="#123b85"/></linearGradient>
+    <linearGradient id="right" x1="55" y1="-24" x2="0" y2="81" gradientUnits="userSpaceOnUse"><stop stop-color="#7bb7f8"/><stop offset=".24" stop-color="#2d8af1"/><stop offset="1" stop-color="#075bc6"/></linearGradient>
+    <linearGradient id="rod" x1="220" y1="170" x2="540" y2="365" gradientUnits="userSpaceOnUse"><stop stop-color="#96c5f3"/><stop offset=".25" stop-color="#e2f1ff"/><stop offset=".6" stop-color="#3b87d7"/><stop offset="1" stop-color="#bad6f4"/></linearGradient>
+    <filter id="shadow" x="-60%" y="-60%" width="220%" height="240%"><feGaussianBlur stdDeviation="16"/></filter>
+    <filter id="lift" x="-50%" y="-35%" width="200%" height="210%"><feDropShadow dx="0" dy="17" stdDeviation="13" flood-color="#1c4d91" flood-opacity=".13"/></filter>
+    <g id="module" stroke-linejoin="round">
+      <path d="m0-60 60 35v70L0 80l-60-35v-70Z" fill="#1568ce" stroke="#2a76cf" stroke-width="3"/>
+      <path d="m-60-25 60 35v70l-60-35Z" fill="url(#left)"/>
+      <path d="m0 10 60-35v70L0 80Z" fill="url(#right)"/>
+      <path d="m0-60 60 35L0 10l-60-35Z" fill="url(#top)"/>
+      <path d="m-57-25 57 33 57-33M0 10v66" stroke="#d9efff" stroke-opacity=".52" stroke-width="1.6"/>
+      <path d="m-47-27 47-27 43 25" stroke="#fff" stroke-opacity=".58" stroke-width="2.5" stroke-linecap="round"/>
+    </g>
+  </defs>
+  <path fill="#f2f5fa" d="M0 0h800v560H0z"/>
+  <ellipse cx="404" cy="447" rx="178" ry="19" fill="#3568ab" opacity=".13" filter="url(#shadow)"/>
+  <path d="M400 193v78m-25 22-99 70m148-70 100 70" stroke="#3c73b1" stroke-opacity=".15" stroke-width="29" stroke-linecap="round" transform="translate(0 10)"/>
+  <path d="M400 188v82m-25 20-99 70m148-70 100 70" stroke="url(#rod)" stroke-width="22" stroke-linecap="round"/>
+  <path d="M397 189v78m-24 21-98 69m148-66 99 69" stroke="#eff8ff" stroke-opacity=".75" stroke-width="3.5" stroke-linecap="round"/>
+  <g filter="url(#lift)"><use href="#module" transform="translate(400 130) scale(.88)"/><use href="#module" transform="translate(242 346)"/><use href="#module" transform="translate(558 346)"/><use href="#module" transform="translate(400 274) scale(.62)"/></g>
+</svg>

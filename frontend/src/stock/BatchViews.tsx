@@ -1,19 +1,8 @@
+import { MotionDrawer as Drawer, DrawerPresence } from '../motion/MotionDrawer'
 import { useAuth } from '../auth'
 import Decimal from 'decimal.js'
 import { useEffect, useState } from 'react'
-import {
-  Alert,
-  Button,
-  Descriptions,
-  Drawer,
-  Empty,
-  Modal,
-  Result,
-  Skeleton,
-  Space,
-  Table,
-  Tag,
-} from 'antd'
+import { Alert, Button, Descriptions, Empty, Modal, Result, Skeleton, Space, Table, Tag } from 'antd'
 import {
   DownloadOutlined,
   PrinterOutlined,
@@ -295,7 +284,7 @@ export function StockPeek({ itemId }: { itemId: number }) {
       ) : (
         <Skeleton.Input active />
       )}
-      {open && <StockDrawer itemId={itemId} onClose={() => setOpen(false)} />}
+      <DrawerPresence>{open && <StockDrawer itemId={itemId} onClose={() => setOpen(false)} />}</DrawerPresence>
     </div>
   )
 }

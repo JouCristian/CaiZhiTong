@@ -1,19 +1,6 @@
+import { MotionDrawer as Drawer, DrawerPresence } from '../motion/MotionDrawer'
 import { useState } from "react";
-import {
-  Alert,
-  App,
-  Button,
-  Descriptions,
-  Drawer,
-  Form,
-  Input,
-  Modal,
-  Popconfirm,
-  Select,
-  Space,
-  Switch,
-  Tag,
-} from "antd";
+import { Alert, App, Button, Descriptions, Form, Input, Modal, Popconfirm, Select, Space, Switch, Tag } from 'antd'
 import { PlusOutlined, ReloadOutlined } from "@ant-design/icons";
 import { request } from "../api";
 import { useAuth } from "../auth";
@@ -221,7 +208,7 @@ export function UsersPage() {
           )}
         />
       </section>
-      {editor && (
+      <DrawerPresence>{editor && (
         <UserEditor
           account={editor}
           selfId={user!.id}
@@ -233,10 +220,10 @@ export function UsersPage() {
             void refreshProfile();
           }}
         />
-      )}
-      {selected && (
+      )}</DrawerPresence>
+      <DrawerPresence>{selected && (
         <UserDetail id={selected} onClose={() => setSelected(undefined)} />
-      )}
+      )}</DrawerPresence>
       {passwordUser && (
         <PasswordReset
           account={passwordUser}

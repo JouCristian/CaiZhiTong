@@ -1,19 +1,6 @@
+import { MotionDrawer as Drawer, DrawerPresence } from '../motion/MotionDrawer'
 import { useEffect, useRef, useState } from "react";
-import {
-  Alert,
-  App,
-  Button,
-  Descriptions,
-  Drawer,
-  Form,
-  Input,
-  InputNumber,
-  Select,
-  Skeleton,
-  Space,
-  Tabs,
-  Tag,
-} from "antd";
+import { Alert, App, Button, Descriptions, Form, Input, InputNumber, Select, Skeleton, Space, Tabs, Tag } from 'antd'
 import { PlusOutlined, ReloadOutlined } from "@ant-design/icons";
 import Decimal from "decimal.js";
 import { Link, useSearchParams } from "react-router-dom";
@@ -323,7 +310,7 @@ export function LifecyclePage() {
           )}
         />
       </section>
-      {create &&
+      <DrawerPresence>{create &&
         !pending &&
         (kind === "return" ? (
           <ReturnCreator
@@ -345,10 +332,10 @@ export function LifecyclePage() {
               })
             }
           />
-        ))}
-      {selected && (
+        ))}</DrawerPresence>
+      <DrawerPresence>{selected && (
         <LifecycleDetail kind={kind} id={selected} onClose={() => detail()} />
-      )}
+      )}</DrawerPresence>
     </div>
   );
 }

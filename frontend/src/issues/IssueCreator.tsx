@@ -1,16 +1,6 @@
+import { MotionDrawer as Drawer } from '../motion/MotionDrawer'
 import { useEffect, useRef, useState } from 'react'
-import {
-  Alert,
-  App,
-  Button,
-  Descriptions,
-  Drawer,
-  Form,
-  Input,
-  InputNumber,
-  Select,
-  Skeleton,
-} from 'antd'
+import { Alert, App, Button, Descriptions, Form, Input, InputNumber, Select, Skeleton } from 'antd'
 import Decimal from 'decimal.js'
 import { ApiError, request, newRequestId } from '../api'
 import { useAuth } from '../auth'
