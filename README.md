@@ -1,308 +1,512 @@
 # 材智通 CaiZhiTong
 
-面向高校实验室的智慧材料库数字化管理系统。以 React、Spring Boot 和 PostgreSQL 连接材料档案、入库、领用、归还报废、预警与报表，提供可追溯、可本地演示的完整业务闭环。
+**从一份材料档案，到一次有据可查的实验消耗。**
 
-**当前版本：v0.7.0 · GitHub OAuth 与只读公开体验。** 现已上线 GitHub 登录：首次进入独立合成演示空间，仅有 GUEST 权限，正式业务数据保持隔离。原用户名密码登录及 Sprint 01–06 业务能力完整保留。[生产上线记录](docs/CLOUD-DEPLOYMENT-03.md)说明真实授权、数据库迁移和验收边界。
-
-**在线体验：[打开材智通](https://caizhitong-eight.vercel.app)** · [后端健康检查](https://caizhitong-api.onrender.com/actuator/health)。访客可使用 GitHub 登录公开只读演示；业务成员继续使用管理员分配的账户，公网环境不提供通用演示密码。免费后端休眠后首次连接可能需要 2–3 分钟。
+面向高校实验室的材料与库存管理系统。以 React、Spring Boot、PostgreSQL 实现材料分类、入库、批次库存、扫码领用、归还报废、低库存预警与统计报表，提供完整的中文工作空间和独立公开只读体验。
 
 [![Build and test](https://github.com/JouCristian/CaiZhiTong/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/JouCristian/CaiZhiTong/actions/workflows/ci.yml)
 
-![真实运行的工作台](docs/screenshots/sprint06-dashboard-desktop.png)
+[在线体验](https://caizhitong-eight.vercel.app) · [健康检查](https://caizhitong-api.onrender.com/actuator/health) · [贡献指南](CONTRIBUTING.md) · [API](docs/API.md) · [开发历程](docs/DEVELOPMENT.md)
 
-[本地运行](#本地运行) · [接口与权限](docs/API.md) · [最终验收](docs/FINAL-ACCEPTANCE.md) · [开发记录](docs/DEVELOPMENT.md) · [发布说明](docs/DEPLOYMENT.md)
+![正式网站登录界面](docs/screenshots/ui-polish-cloud-login-desktop.png)
 
-## 功能特色
+## 版本冻结
 
-- **完整材料闭环**：分类与档案、入库批次、领用、归还报废、预警及报表真实关联。
-- **数据可追溯**：精确十进制金额、原价格快照、不可变库存流水与持久幂等，重复提交不重复计量。
-- **角色与隐私**：六类角色、服务端实时授权、旧会话撤销；学生仅访问本人私有业务。
-- **GitHub 只读体验**：OAuth2 授权码、state / PKCE、60 秒浏览器绑定交换码；首次登录仅 GUEST，不按邮箱或用户名合并已有账户。游客仅访问独立 Demo 表与只读 API，正式材料、库存、报表、附件和写入全部拒绝。见[OAuth 配置](docs/V0.7.0-GITHUB-OAUTH.md)与[隔离设计](docs/DEMO-ISOLATION.md)。
-- **统一工作空间**：Apple 风格浅色界面、响应式表单与移动卡片，空状态忠实反映数据库。
+**当前冻结版本：v0.7.0。** Sprint 01–06、GitHub OAuth、独立 Demo、云部署与 UI 精修均已完成验收。应用基线为 [`2e1e16e`](https://github.com/JouCristian/CaiZhiTong/commit/2e1e16e38e0f1531cf8883c530549a7b780ce381)，本轮仅补齐开源文档与协作规范，不增加功能或修改业务规则。
 
-## 功能清单
+`v0.7.0` Git 标签固定本轮文档整理完成后的仓库快照，应用代码与上述基线一致。冻结不归档仓库，也不阻止贡献：文档与缺陷反馈继续接收，新功能和行为变更通过独立 PR 评审、归入后续版本，不移动或覆盖冻结标签。详见[版本冻结说明](docs/RELEASE-v0.7.0.md)。
 
-| 模块 | 已实现能力 |
+这是已完成课程项目目标、可真实运行的系统。生产级审批、灾备、性能与合规能力的边界见[当前限制](#当前限制与后续方向)。
+
+## 阅读导航
+
+- [在线体验与数据边界](#在线体验与数据边界)
+- [项目特色](#项目特色)
+- [功能与完整业务流程](#功能与完整业务流程)
+- [角色与权限](#角色与权限)
+- [界面展示](#界面展示)
+- [技术栈与系统架构](#技术栈与系统架构)
+- [本地快速开始](#本地快速开始)
+- [环境配置](#环境配置)
+- [数据库与业务规则](#数据库与业务规则)
+- [测试与验收依据](#测试与验收依据)
+- [项目开发历程](#项目开发历程)
+- [云端部署与维护](#云端部署与维护)
+- [参与贡献](#参与贡献)
+- [文档索引](#文档索引)
+- [版本变更记录](CHANGELOG.md)
+- [当前限制与后续方向](#当前限制与后续方向)
+- [许可证与第三方说明](#许可证与第三方说明)
+
+## 在线体验与数据边界
+
+| 入口 | 地址 / 用途 |
 | --- | --- |
-| 认证与权限 | BCrypt、JWT、GitHub OAuth；每请求实时授权，停用和密码重置撤销旧会话 |
-| 公开体验 | 25 种合成材料、50 个批次、独立 Demo 工作台 / 材料 / 库存，只读且与正式数据隔离 |
-| 工作台 | 库存价值、本月领用与净消耗、TOP10、趋势、资金占比及授权排行榜 |
-| 材料管理 | 分类树、材料档案、启停归档、服务端筛选分页 |
-| 库存与入库 | 多明细入库、批次余额、价格快照、不可变流水、二维码与标签打印 |
-| 领用管理 | 批次扣减、自然月额度、本人 / 全量历史、中文 PDF 凭证 |
-| 归还与报废 | 完好材料多次归还原批次、仓库报废、认证照片、事务与幂等 |
-| 库存预警 | 周期预警、确认备注、自动恢复、扫描、提交后 SMTP 与结果追踪 |
-| 数据报表 | 学期耗材 / 经费对应 / 个人明细预览及全部六种 Excel / PDF 导出 |
-| 用户与权限 | 新增编辑、六类角色、邮箱、启停、密码重置、最近登录、管理员保护 |
-| 系统设置 | 品牌、时区、学期范围、通知收件人、邮件状态与最近结果 |
+| 正式前端 | [caizhitong-eight.vercel.app](https://caizhitong-eight.vercel.app) |
+| 后端 API | [caizhitong-api.onrender.com](https://caizhitong-api.onrender.com)，根路径不是管理页面 |
+| 健康检查 | [/actuator/health](https://caizhitong-api.onrender.com/actuator/health) |
 
-界面采用独立品牌与 Apple 风格浅色工作空间，统一系统蓝、圆角和克制动效；桌面高效操作，移动端使用卡片、响应式表单与抽屉。不使用 Apple Logo 或品牌资源。
+1. 打开前端，点击「继续使用 GitHub」。
+2. 在 GitHub 官方页面亲自授权，首次登录自动建立仅有 `GUEST` 角色的账户。
+3. 进入「演示工作台」，浏览合成材料、库存汇总、批次与示例变化，体验搜索、筛选、分页和详情。
+4. 正式业务成员使用次级「使用账号密码登录」入口，或由管理员明确分配正式角色。
 
-六类角色为游客、学生、实验员、教师、采购员、系统管理员。学生只查看本人领用、归还与个人报表；个人排行榜仅管理员 / 实验员可见。游客仅进入独立合成演示空间。前端导航与后端授权共同生效。
+**公开体验只读，与正式业务隔离。** Demo 使用独立 `demo_*` 表及服务端 API，不读取正式材料、库存、个人领用、财务报表或私人附件。游客不能执行入库、领用、报废和系统管理；直接调用正式业务 API 同样返回 403，不能自行提权，也不会因相同邮箱或用户名接管既有账户。
 
-## 核心界面
+网站不提供通用公网管理员或业务演示密码。请勿上传真实学生、采购或财务资料，完整写入流程在自己的本地库体验。Render Free 休眠后的首次连接可能需要 2–3 分钟，界面会提示等待；免费平台不提供可用性保证。
 
-<details>
-<summary>展开八个核心界面：登录、工作台、材料、库存、领用、报表、用户、设置</summary>
+## 项目特色
 
-| 登录 | 工作台 |
-| --- | --- |
-| <img src="docs/screenshots/ui-polish-cloud-login-desktop.png" alt="正式站登录页面与品牌动效" width="420"> | <img src="docs/screenshots/sprint06-dashboard-desktop.png" alt="真实业务工作台" width="420"> |
-| 材料管理 | 库存管理 |
-| <img src="docs/screenshots/sprint02-materials-desktop.png" alt="材料档案与分类" width="420"> | <img src="docs/screenshots/sprint03-inventory-desktop.png" alt="库存与批次" width="420"> |
-| 领用 | 报表 |
-| <img src="docs/screenshots/sprint04-issue-form-desktop.png" alt="批次领用与额度" width="420"> | <img src="docs/screenshots/sprint05-reports-desktop.png" alt="报表筛选与汇总" width="420"> |
-| 用户与权限 | 系统设置 |
-| <img src="docs/screenshots/sprint06-users-desktop.png" alt="用户角色维护" width="420"> | <img src="docs/screenshots/sprint06-settings-desktop.png" alt="系统及学期设置" width="420"> |
+- **真实闭环**：界面操作连接 Spring Boot 和 PostgreSQL，材料、单据、批次、流水与报表相互关联。
+- **库存与金额一致**：库存来自批次余额，精确十进制和历史价格快照避免成本漂移，不混加币种。
+- **写入可靠**：事务、排序行锁、条件更新、持久幂等；网络中断后重试相同请求不会重复计量。
+- **服务端权限**：六角色、每请求实时授权、会话撤销；学生仅访问本人私有业务。
+- **过程可追溯**：六轮 Sprint、发布、云适配、OAuth 隔离、UI 精修保留实际决策、失败修复和验证记录。
+- **统一交互**：Apple 风格浅色、系统蓝、响应式列表与抽屉；React Bits 登录动效、自有标识、静态回退与减少动态效果支持。
 
-</details>
+## 功能与完整业务流程
 
-更多真实截图：[系统设置](docs/screenshots/sprint06-settings-desktop.png)、[学生工作台](docs/screenshots/sprint06-dashboard-personal-mobile.png)、[数据报表](docs/screenshots/sprint05-reports-desktop.png)、[日常零数据工作台](docs/screenshots/sprint06-dashboard-empty-desktop.png)。业务截图来自真实浏览器与隔离 PostgreSQL 测试业务，日常环境不会自动拥有这些验收数据；零数据截图则来自日常环境。[各轮开发记录](docs/DEVELOPMENT.md)保留完整截图入口。
+| 模块 | 已完成能力 | 关键边界 |
+| --- | --- | --- |
+| 认证 | 密码 / BCrypt、JWT、GitHub OAuth、状态恢复、退出和失效处理 | 无公网管理员注册，OAuth 首次仅 GUEST |
+| 公开体验 | 独立工作台、25 种材料、50 个批次、100 条示例变化 | 合成数据真实存库，只读，不纳入正式统计 |
+| 工作台 | 库存价值、低库存、本月领用 / 净消耗、TOP10、趋势、资金占比、授权排行 | 按角色裁剪，空数据不填假指标 |
+| 分类 | 大类 / 子类、树形浏览、增改删、排序、父子 / 循环校验 | 基础分类最多两层，品牌 / 型号由属性聚合为展示节点 |
+| 材料档案 | 唯一自动编码、品牌型号、规格、单位、单价、币种、安全库存、启停归档 | 服务端查询分页，不能直接编辑库存 |
+| 入库 | 多明细、库位、有效期、备注、单据和价格快照 | 单据、批次、IN 流水同事务，UUID 幂等 |
+| 库存 | 汇总、批次余额、库存状态、流水、二维码、打印标签 | 二维码包含批次公开路由，不含密码或 JWT |
+| 领用 | 扫码 / 批次入口、手工选择、核对提交、月额度、历史、中文 PDF | 后端确定当前领用人，校验库存和额度 |
+| 归还 | 原单查询、多次 / 部分完好归还、原批次回库、历史与详情 | 累计不超领用量，不返还月度额度 |
+| 报废 | 仓库余额报废、原因、照片、不可变历史 | 不重复扣已领出材料，照片认证读取 |
+| 预警 | 周期事件、确认、恢复、扫描、通知结果与重试 | 无 SMTP 如实显示 NOT_CONFIGURED，邮件失败不回滚库存 |
+| 报表 | 学期耗材、经费对应、个人明细；预览和六种 XLSX / PDF 导出 | 同口径，最多 10,000 行，不是学校财务接口 |
+| 用户权限 | 搜索分页、创建编辑、角色分配、启停、重置密码、最近登录 | 仅管理员，保护自身和最后有效管理员 |
+| 系统设置 | 名称 / 描述、时区、学期范围、收件人、通知状态 | 仅管理员修改，不返回服务端秘密 |
 
-v0.7.0 独立演示界面（本机隔离 PostgreSQL + Mock OAuth 的真实浏览器截图，尚非生产 OAuth 验收）：
-
-| 演示工作台 | 演示材料与批次 |
-| --- | --- |
-| <img src="docs/screenshots/v070-oauth-guest-desktop.png" alt="独立合成演示工作台" width="420"> | <img src="docs/screenshots/v070-demo-detail-desktop.png" alt="独立演示材料及示例变化" width="420"> |
-
-<details>
-<summary>v0.7.0 正式生产界面</summary>
-
-| 正式登录入口 | 独立公开演示工作台 |
-| --- | --- |
-| <img src="docs/screenshots/ui-polish-cloud-login-desktop.png" alt="已上线的 GitHub 与密码登录入口" width="420"> | <img src="docs/screenshots/cloud-v070-demo-desktop.png" alt="正式网站独立合成游客演示空间" width="420"> |
-
-[手机登录截图](docs/screenshots/ui-polish-cloud-login-mobile.png)。截图来自正式 Vercel / Render；演示工作台使用独立合成 GUEST 验收账户，不展示真实 GitHub 个人资料。真实 GitHub 授权与复登由账户持有人手动完成，并经数据库指纹核验。
-
-</details>
-
-## 技术栈与架构
-
-| 层次 | 技术 |
-| --- | --- |
-| 前端 | React 19、TypeScript 5.9、Vite 7、Ant Design 5、React Router 7、Decimal.js |
-| 后端 | Java 17、Spring Boot 3.5、Spring Security、JWT、MyBatis-Plus、Spring JDBC |
-| 数据 | PostgreSQL 15、Flyway V1–V7、NUMERIC / BigDecimal |
-| 文件与通知 | Apache POI、PDFBox、OFL 中文字体、ZXing、ImageIO / WebP、Jakarta Mail |
-| 验证 | JUnit / MockMvc、真实 PostgreSQL、Playwright 桌面 / 移动浏览器 |
+### 一份材料如何流转
 
 ```mermaid
 flowchart LR
-    UI[React 工作空间] -->|HTTP JSON / 认证文件流| API[Spring Boot 单体服务]
-    API --> Security[JWT 与实时角色校验]
-    API --> DB[(PostgreSQL / Flyway)]
-    API --> Files[认证照片存储]
-    API --> Reports[Excel / 中文 PDF]
-    API -->|事务提交后| Mail[SMTP 通知]
+    Catalog[分类与材料档案] --> Inbound[入库单与明细]
+    Inbound --> Batch[库存批次与价格快照]
+    Batch --> Issue[领用单与月度额度]
+    Issue --> Return[完好归还原批次]
+    Return --> Batch
+    Batch --> Scrap[仓库报废与认证照片]
+    Inbound --> Ledger[不可变库存流水]
+    Issue --> Ledger
+    Return --> Ledger
+    Scrap --> Ledger
+    Ledger --> Reports[工作台与报表]
+    Batch --> Alerts[低库存预警与通知]
 ```
 
-既有 CRUD 使用 MyBatis-Plus，聚合与运维 Mapper 使用同一数据源的预编译 JdbcTemplate SQL，共享 Spring 事务。无需 Redis、消息队列或微服务。
+本地可创建分类和材料，入库 100、领用 20、归还 5、仓库报废 3，最终余额应为 **82**。这是实际云验收用例，不代表在线游客拥有写权限。
+
+领用 PDF 来自持久化单据快照，报表从真实单据与归还日期聚合。修改档案单价不追改历史成本，归档不删除历史关联。
+
+## 角色与权限
+
+| 角色 | 编码 | 典型能力 |
+| --- | --- | --- |
+| 游客 / 体验用户 | `GUEST` | 独立 Demo、本人身份，无正式业务访问权限 |
+| 学生 | `STUDENT` | 正式材料只读、批次入口、本人领用 / 归还记录与个人报表 |
+| 实验员 | `LAB_TECH` | 档案新增编辑、入库、领用管理、归还报废、预警和授权报表，无用户 / 全局设置维护权限 |
+| 教师 | `TEACHER` | 材料 / 库存只读、本人领用相关业务、授权汇总与个人报表，无受限项目明细和个人排行 |
+| 采购员 | `PURCHASER` | 材料 / 库存、入库历史、预警确认和授权汇总，页面可见不意味拥有入库写权限 |
+| 管理员 | `ADMIN` | 全量业务、分类维护 / 档案归档、月限额、用户和系统设置 |
+
+具体接口见 [API 权限文档](docs/API.md)及服务端授权。菜单可见不等于写权限，多角色按实际角色授权；只有 GUEST 的账户才进入 Demo 专用空间。
+
+每请求检查数据库中的账户状态、角色和会话版本。停用 / 密码重置撤销旧 JWT，重新启用不复活旧会话，角色变更在下一请求生效。用户查询不返回密码、哈希或令牌版本。
+
+## 界面展示
+
+顶部登录图来自正式网站，下列业务图来自真实浏览器及隔离 PostgreSQL。样本是合成验收记录，不是硬编码指标，也不代表游客能进入正式页面。
+
+<details>
+<summary>展开工作台、材料、库存、入库、领用、报表、用户与设置</summary>
+
+| 工作台 | 材料与分类 |
+| --- | --- |
+| <img src="docs/screenshots/sprint06-dashboard-desktop.png" alt="真实业务工作台" width="420"> | <img src="docs/screenshots/sprint02-materials-desktop.png" alt="材料分类与档案" width="420"> |
+| 库存与批次 | 入库 |
+| <img src="docs/screenshots/sprint03-inventory-desktop.png" alt="库存批次" width="420"> | <img src="docs/screenshots/sprint03-inbound-form-desktop.png" alt="多明细入库" width="420"> |
+| 领用与额度 | 报表 |
+| <img src="docs/screenshots/sprint04-issue-form-desktop.png" alt="批次领用" width="420"> | <img src="docs/screenshots/sprint05-reports-desktop.png" alt="报表预览" width="420"> |
+| 用户与权限 | 系统设置 |
+| <img src="docs/screenshots/sprint06-users-desktop.png" alt="用户维护" width="420"> | <img src="docs/screenshots/sprint06-settings-desktop.png" alt="系统设置" width="420"> |
+
+</details>
+
+<details>
+<summary>展开独立 Demo、归还报废及移动端展示</summary>
+
+| 正式站 Demo | 演示详情 |
+| --- | --- |
+| <img src="docs/screenshots/cloud-v070-demo-desktop.png" alt="正式合成演示空间" width="420"> | <img src="docs/screenshots/v070-demo-detail-desktop.png" alt="本机 Mock OAuth 演示详情" width="420"> |
+| 完好归还 | 仓库报废 |
+| <img src="docs/screenshots/sprint05-return-form-desktop.png" alt="完好归还" width="420"> | <img src="docs/screenshots/sprint05-scrap-desktop.png" alt="报废与照片" width="420"> |
+| 正式手机登录 | 手机导航 |
+| <img src="docs/screenshots/ui-polish-cloud-login-mobile.png" alt="正式网站手机宽度登录" width="240"> | <img src="docs/screenshots/ui-polish-sidebar-mobile.png" alt="隔离库手机导航" width="240"> |
+
+</details>
+
+原图见 [screenshots](docs/screenshots/README.md)，真实 Excel / PDF 样本见 [examples](docs/examples/README.md)。静态图不能呈现动效，详见 [UI 精修](docs/UI-POLISH-01.md)。移动端以 Chromium 模拟验证，不等同于真机 Safari。
+
+## 技术栈与系统架构
+
+| 层次 | 技术 |
+| --- | --- |
+| 前端 | React 19、TypeScript 5.9、Vite 7、React Router 7 |
+| 视觉 | Ant Design 5 定制 Token、独立 CSS、GSAP / Motion / OGL、React Bits |
+| 后端 | Java 17、Spring Boot 3.5、Spring Security、OAuth2 Client、Nimbus JWT |
+| 数据访问 | MyBatis-Plus、Spring JDBC / JdbcTemplate、Spring 事务 |
+| 数据与精度 | PostgreSQL 15、Flyway V1–V7、NUMERIC / BigDecimal / Decimal.js |
+| 导出与二维码 | Apache POI、PDFBox、OFL 中文字体、ZXing |
+| 文件与通知 | 本地文件 / Supabase 私有 Storage、ImageIO / WebP、Jakarta Mail |
+| 验证 | JUnit / MockMvc、真实 PostgreSQL、Playwright、Docker 冒烟 |
+| 部署 | GitHub Actions、Vercel、Render Free、Supabase |
+
+实际依赖版本以 `frontend/package-lock.json` 和 `backend/pom.xml` 为准。
+
+```mermaid
+flowchart TB
+    User[浏览器] --> Front[React SPA / Vercel]
+    Front -->|HTTPS JSON 与认证文件流| Backend[Spring Boot 单体 / Render]
+    User -->|亲自授权| GitHub[GitHub OAuth]
+    GitHub -->|授权码回调| Backend
+    Backend --> Auth[JWT 与实时权限]
+    Auth --> Formal[正式业务服务]
+    Auth --> Demo[独立只读 Demo 服务]
+    Formal --> DB[(PostgreSQL 私有业务 Schema)]
+    Demo --> DemoTables[(同库独立 demo_* 表)]
+    Formal --> Storage[Supabase 私有 Storage]
+    Formal --> Export[Excel / PDF / 二维码]
+    Formal -->|事务提交后| SMTP[可选 SMTP]
+```
+
+前后端分离、后端单体，不依赖 Redis、消息队列或微服务。MyBatis-Plus 承担既有 CRUD，聚合 Mapper 以同一数据源的预编译 JdbcTemplate SQL 共享事务。前端只调用 Spring Boot，不直接用 Supabase Key 读取业务表或私有照片。
+
+### 工程目录
 
 ```text
-frontend/       页面、主题、认证与浏览器测试
-backend/        Controller / Service / Mapper、DTO、迁移与集成测试
-scripts/        PowerShell 启动、便携数据库、隔离测试和 HTTP 冒烟
-database/       数据库说明及开发演示档案
-docs/           API、验收、Sprint 历史、真实截图与报表示例
-.github/        PostgreSQL 集成测试与前端构建 CI
+frontend/
+  src/                 路由、认证、主题与业务页面
+    materials/         分类与材料档案
+    stock/             库存、批次与入库
+    issues/            领用与额度
+    operations/        归还、报废、预警、报表
+    admin/             用户与设置
+    demo/              独立只读体验
+    motion/            登录视觉与共享抽屉动效
+  e2e/                 原业务、权限、侧栏与抽屉测试
+  e2e-oauth/           Mock OAuth、Demo 隔离与视觉测试
+backend/
+  src/main/java/cn/caizhitong/
+                       Controller / Service / Mapper / Entity / DTO / Security
+  src/main/resources/db/migration/
+                       已执行的 V1–V7 Flyway 迁移
+  src/main/resources/db/demo/
+                       独立合成 Demo 初始化
+  src/test/            真实 PostgreSQL 集成测试
+database/              数据库说明、开发档案 SQL
+scripts/               启动、便携数据库、隔离测试和审计
+docs/                  API、验收、日志、部署、截图、样本
+.github/               CI、PR 模板与 Issue 模板
+CONTRIBUTING.md        Fork、分支、测试、PR、评审
+SECURITY.md            安全问题私密反馈与保密要求
 ```
 
-## 本地运行
+## 本地快速开始
 
-要求：Windows PowerShell 5.1+（推荐 7）、Node.js 22.12+ / 24、JDK 17、PostgreSQL 15。已验证 Node.js **24.22.1**、OpenLogic OpenJDK **17.0.20+8**、PostgreSQL **15.15**。提供 Maven 3.9.16 Wrapper（Windows / Unix）；便携 PostgreSQL 可替代 Docker。
+### 环境要求
 
-### 首次准备
+| 工具 | 要求 / 已验证环境 |
+| --- | --- |
+| Git | 克隆、分支和 PR |
+| Node.js | 推荐 **24.22.1**，本地及 CI 已验证；Vite 要求 Node 22.12+ 或兼容较新版本 |
+| npm | 随 Node 安装，使用 npm ci 和锁文件 |
+| JDK | **17**；本机 OpenLogic **17.0.20+8**，CI Temurin 17 |
+| Maven | **3.9.16 Wrapper**，无需全局 Maven |
+| PostgreSQL | **15**；本机便携版 **15.15**，CI PostgreSQL 15 |
+| PowerShell | Windows PowerShell 5.1+，推荐 7 |
+| 浏览器 | 现代浏览器，自动化用 Chrome / Playwright Chromium |
+| Docker | 可选数据库 / 镜像验证，一键本地运行不强制要求 |
 
-先克隆源码并进入项目目录：
+首次安装需访问 npm、Maven Central 与数据库下载源。主要本地脚本面向 Windows；Linux CI 已验证构建、数据库测试、Mock OAuth，其他桌面系统的一键启动未逐一验证。
+
+### 1. 克隆与初始化
+
+在自己的工作目录执行，`JAVA_HOME` 先指向自己的 JDK 17：
 
 ```powershell
 git clone https://github.com/JouCristian/CaiZhiTong.git
 Set-Location ./CaiZhiTong
-```
-
-```powershell
-# 克隆仓库后，在项目根目录执行。
-Set-ExecutionPolicy -Scope Process Bypass
-# JAVA_HOME 应指向你自己的 JDK 17 安装目录。
+node --version
 $env:Path = "$env:JAVA_HOME/bin;$env:Path"
+java -version
+./backend/mvnw.cmd -v
+
+# 仅当前 PowerShell 会话有脚本策略限制时使用。
+Set-ExecutionPolicy -Scope Process Bypass
 ./scripts/setup-local.ps1
 Copy-Item ./frontend/.env.example ./frontend/.env
 npm.cmd --prefix frontend ci
 ./scripts/portable-postgres.ps1 start
 ```
 
-setup-local 保留已有 `.env`，首次生成本地随机数据库密码、JWT 密钥与演示密码。已有项目无需重复复制前端配置。也可使用 `docker compose up -d`，与便携实例二选一，避免争用 5432。
+首次生成随机数据库密码、JWT 密钥和三个账户密码，写入忽略的根 `.env`；已存在时保留。便携数据库仅监听本机，数据在忽略的 `.runtime/pgdata`。
 
-### 启动
+已有项目不要覆盖自己的环境文件。选择 Docker 时，以 `docker compose up -d` 替代便携数据库启动，不同时占用 5432。Compose 仅提供数据库，不包含前后端容器。
 
-第一个 PowerShell 窗口，在项目根目录：
+### 2. 启动
+
+终端 A，仓库根目录：
 
 ```powershell
 ./scripts/start-backend.ps1
 ```
 
-第二个窗口：
+终端 B，同一仓库根目录：
 
 ```powershell
-Set-Location ./frontend
-npm.cmd run dev
+npm.cmd --prefix frontend run dev
 ```
 
-- 前端：[http://127.0.0.1:5173](http://127.0.0.1:5173)
-- 健康检查：[http://127.0.0.1:8080/actuator/health](http://127.0.0.1:8080/actuator/health)
+| 入口 | 地址 |
+| --- | --- |
+| 本地前端 | http://127.0.0.1:5173 |
+| 本地健康 | http://127.0.0.1:8080/actuator/health |
 
-服务已运行时直接访问，不要重复启动。修改环境配置后重启对应服务；关闭时在启动终端 Ctrl+C。数据库使用 `scripts/portable-postgres.ps1 stop` 或 `docker compose stop`，保留数据。Windows 重打包运行中的同名 JAR 前需先停止对应进程，或使用 Maven 开发启动方式。
+首次启动自动执行 Flyway。Vite 代理 `/api`、`/oauth2` 和后端 OAuth 回调，无需把生产数据库或 GitHub Secret 放到前端。
 
-本机 Node 24.15 曾出现 Vite 进程原生 `0xC0000409` 退出，包含开发及预览进程；应先升级到较新的稳定 Node 补丁版，并用 `node --version` 确认启动终端生效。也可在停止前端后使用本地生产资源预览（仍连接真实后端）：
+### 3. 登录与可选开发数据
 
-```powershell
-# 从项目根目录进入前端。
-Set-Location ./frontend
-npm.cmd run build
-npm.cmd run preview -- --port 5173 --strictPort
-```
-
-Vite preview 继承本地 `/api` 代理；这仅供本地验收，实际托管按部署说明配置。后端按当前工程版本启动，云端功能启用状态见对应部署与开发记录。
-
-### 演示账户
-
-| 用户名 | 角色 | 本地密码变量 |
+| 用户名 | 角色 | 密码变量 |
 | --- | --- | --- |
-| admin | 系统管理员 | DEMO_ADMIN_PASSWORD |
+| admin | 管理员 | DEMO_ADMIN_PASSWORD |
 | lab | 实验员 | DEMO_LAB_PASSWORD |
 | student | 学生 | DEMO_STUDENT_PASSWORD |
 
-在自己的终端查看：
+在自己的编辑器中打开忽略的根 `.env` 查看密码，不粘贴到 Issue、PR、截图或共享日志。仅 dev profile + DEMO_ENABLED=true 补建缺失账户，不覆盖原密码或角色；修改环境变量不重置管理员改过的密码。
+
+日常本地库没有正式库存，可通过界面走完整业务。迁移完成后可选执行：
 
 ```powershell
-Get-Content ./.env | Select-String '^DEMO_(ADMIN|LAB|STUDENT)_PASSWORD='
+./scripts/seed-demo.ps1
 ```
 
-仅 dev profile 且 DEMO_ENABLED=true 时初始化缺失账户，不覆盖已有密码或角色。管理员重置后使用新密码；修改环境变量不会重置已有账户。日常库不自动插入业务数据，可自行新增，或运行 `scripts/seed-demo.ps1` 导入十份开发档案，不创建库存。
+该脚本仅在明确启用的开发环境写十份档案，不创建正式库存；与启动时初始化的独立 `demo_*` 公开目录是两套数据。
 
-## 环境变量
+### 4. 停止与构建
 
-复制模板并按本机环境配置，服务端密钥不能放入任何 `VITE_` 变量：
+启动终端 Ctrl+C 停止前后端；数据库用 `./scripts/portable-postgres.ps1 stop` 或 `docker compose stop`，保留数据。配置改动后重启服务，不为修配置删除数据库。
 
-| 配置 | 用途 |
+```powershell
+# 先按测试章节准备独立测试库，从仓库根目录执行。
+. ./scripts/load-env.ps1
+Push-Location ./backend
+./mvnw.cmd -B verify
+Pop-Location
+npm.cmd --prefix frontend run typecheck
+npm.cmd --prefix frontend run build
+```
+
+Windows 重新打包运行中的同名 JAR 前应停止对应进程，避免文件锁。前端本地预览用 `npm.cmd --prefix frontend run preview -- --port 5173 --strictPort`，仍需真实后端，不是云部署命令。
+
+## 环境配置
+
+| 文件 | 读取方式 |
 | --- | --- |
-| `DB_URL` / `DB_USERNAME` / `DB_PASSWORD` | PostgreSQL JDBC 地址与凭据 |
-| `JWT_SECRET` / `JWT_TTL_SECONDS` | Base64 随机签名密钥与令牌期限 |
-| `SERVER_PORT` / `CORS_ALLOWED_ORIGINS` / `PUBLIC_WEB_URL` | 后端端口、精确前端来源、二维码公开域名 |
-| `DEMO_ENABLED` / `DEMO_*_PASSWORD` | 仅开发环境的演示账户初始化 |
-| `BUSINESS_TIME_ZONE` / `STORAGE_ROOT` | 初始业务时区与照片目录 |
-| `MAIL_*` | 可选服务端 SMTP 及通知配置 |
-| `VITE_API_BASE_URL` | 前端生产 API 来源，无 `/api` 后缀；本地留空使用代理 |
-| `VITE_API_TIMEOUT_MS` | 请求等待时间，默认 12000 ms；Render Free 设置 240000 ms 兼容唤醒 |
-| `API_PROXY_TARGET` | Vite 本地代理目标，生产前端不读取 |
-| `STORAGE_MODE` / `SUPABASE_*` | local 文件系统或后端代理的 Supabase 私有 Storage |
-| `DB_SCHEMA` / `DB_POOL_MAX` / `FLYWAY_DB_*` | 私有业务 Schema、连接池和独立迁移连接 |
-| `BOOTSTRAP_ADMIN_*` | 受控的首次管理员初始化，默认关闭，无公网注册接口 |
-| `GITHUB_OAUTH_ENABLED` / `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` / `GITHUB_REDIRECT_URI` | 可选 GitHub OAuth，仅后端配置；默认关闭，生产回调见[开发记录](docs/V0.7.0-GITHUB-OAUTH.md) |
+| 根 [.env.example](.env.example) → .env | PowerShell 启动 / 测试脚本读取 |
+| [frontend/.env.example](frontend/.env.example) → frontend/.env | Vite 读取，VITE_ 变量进入浏览器 |
+| [.env.cloud.example](.env.cloud.example) | 云端参考，本地脚本不自动加载 .env.cloud |
 
-完整模板：[本地后端](.env.example)、[前端](frontend/.env.example)、[云端后端](.env.cloud.example)。真实 `.env` / `.env.cloud`、数据库目录、附件和日志不提交。云模板不会被本地启动脚本自动加载。
+**Spring Boot 不自行读取根 `.env`。** 先用脚本加载再启动 Maven，或在 IDE 设置变量。生产秘密只放后端平台，不放 Docker 构建参数、源码或 VITE_ 变量。
 
-## 数据库初始化与迁移
+| 组别 | 变量 | 作用 / 边界 |
+| --- | --- | --- |
+| 数据库 | DB_URL、DB_USERNAME、DB_PASSWORD | JDBC 地址，URL 不嵌入凭据 |
+| Schema / 池 | DB_SCHEMA、DB_POOL_MAX、DB_POOL_MIN | 本地 public，云端私有 caizhitong，池上限 3 |
+| 迁移 | FLYWAY_DB_URL、FLYWAY_DB_USERNAME、FLYWAY_DB_PASSWORD | 独立连接，缺省继承运行凭据 |
+| JWT | JWT_SECRET、JWT_TTL_SECONDS | Base64 解码至少 32 随机字节，默认 7200 秒 |
+| 网络 | SERVER_PORT、CORS_ALLOWED_ORIGINS、PUBLIC_WEB_URL | 精确前端源、端口、二维码公开域名 |
+| 业务 | BUSINESS_TIME_ZONE | 初始 Asia/Shanghai，库存业务后锁定时区 |
+| 开发账户 | DEMO_ENABLED、DEMO_*_PASSWORD | 仅开发，生产 false |
+| 管理员 | BOOTSTRAP_ADMIN_* | 无有效管理员时受控初始化，成功后关闭并删除一次性密码 |
+| 照片 | STORAGE_MODE、STORAGE_ROOT | local / supabase，切换不自动搬迁旧文件 |
+| Storage | SUPABASE_URL、SUPABASE_STORAGE_BUCKET、SUPABASE_STORAGE_KEY | 仅后端，私有 Bucket |
+| OAuth | GITHUB_OAUTH_ENABLED、GITHUB_CLIENT_ID、GITHUB_CLIENT_SECRET、GITHUB_REDIRECT_URI | 本地默认关闭，Secret 仅后端 |
+| 通知 | MAIL_*、ALERT_SCAN_ENABLED | SMTP 可选，缺失不影响站内预警 |
+| 前端 | VITE_API_BASE_URL | 后端源，无 /api 后缀，本地留空走代理 |
+| 超时 | VITE_API_TIMEOUT_MS | 本地 12000 ms，正式 Free 环境 240000 ms |
+| 代理 | API_PROXY_TARGET | 仅 Vite，默认 http://127.0.0.1:8080 |
 
-首次启动自动执行 Flyway，禁止修改已执行版本。后续扩展追加迁移。[数据库说明](database/README.md)。
+本地 OAuth 优先 Mock Provider，无需真实个人资料。自建 App 的 Homepage / 回调、state / PKCE、一次性交换见 [OAuth 配置](docs/V0.7.0-GITHUB-OAUTH.md)。不将维护者生产 App 用于自己的 Fork。
 
-| 版本 | 内容 |
-| --- | --- |
-| V1 | 用户、角色与关联 |
-| V2 | 材料分类与档案 |
-| V3 | 入库、批次、不可变流水 |
-| V4 | 领用单、月度额度、价格快照 |
-| V5 | 归还、报废、附件、预警、邮件、课程 |
-| V6 | 登录时间、会话撤销版本、全局设置 |
-| V7 | GitHub 稳定身份、一次性交换码、OAuth 密码入口开关、独立 demo_* 表 |
+## 数据库与业务规则
 
-配置模板为根 `.env.example` 与 `frontend/.env.example`。后端必需 DB_URL、DB_USERNAME、DB_PASSWORD、JWT_SECRET；密钥解码至少 32 随机字节。CORS_ALLOWED_ORIGINS 为允许来源，PUBLIC_WEB_URL 用于二维码与邮件链接。
+| 迁移 | 主要结构 | 阶段 |
+| --- | --- | --- |
+| V1 | sys_user、sys_role、sys_user_role | 认证六角色 |
+| V2 | material_category、material_item、编码序列 | 分类档案 |
+| V3 | 入库单 / 明细、stock_batch、stock_transaction | 入库批次流水 |
+| V4 | 领用单 / 明细、月度用量、价格快照 | 领用额度 |
+| V5 | 归还、报废、附件、预警、通知、课程 | 流转报表 |
+| V6 | 最近登录、会话版本、app_settings | 用户设置 |
+| V7 | OAuth 身份 / 交换码、密码入口、四张 demo_* 表 | 公开体验 |
 
-系统设置保存名称、描述、学期与额外收件人。业务时区取 BUSINESS_TIME_ZONE（默认 Asia/Shanghai），首次库存业务前可调整，产生业务后锁定，防止历史日期与月度额度漂移。原领用单保留当时业务时区。
+原文件见[迁移目录](backend/src/main/resources/db/migration)，详细约束见[数据库说明](database/README.md)。**V1–V7 是已执行历史，不得改名、改写、重排或用 repair 掩盖差异。** 后续仅追加经评审的新版本。
 
-SMTP 可选配置：MAIL_HOST、MAIL_PORT、MAIL_USERNAME、MAIL_PASSWORD、MAIL_FROM、MAIL_RECIPIENTS、MAIL_STARTTLS、MAIL_SSL、MAIL_DISPATCH_ENABLED。587 常用强制 STARTTLS，465 常用 SSL，按服务商要求配置。收件人由环境、系统设置和启用采购员邮箱合并。无配置时显示 NOT_CONFIGURED，站内预警仍完整可用。
+Demo 以固定合成记录、事务锁及 ON CONFLICT DO NOTHING 幂等初始化，重启不清空 / 重置已有记录；关联仅限 Demo，不回退正式表。
 
-STORAGE_ROOT 默认 `./.runtime/uploads`，相对后端工作目录。支持 JPG / PNG / WebP，最大 5 MB、2000 万像素，鉴权读取；照片需持久存储并独立备份。
+关键口径：
 
-### 库存与金额口径
+- 批次余额是库存来源，安全库存仅为预警阈值。
+- 单据、余额、不可变流水同事务；相同幂等键 / 内容恢复原结果，冲突内容不得伪装成功。
+- 归还进入原批次，累计不超原领用，不返还自然月额度；报废只扣仓库余额。
+- 总库存严格低于阈值才预警，阈值 0 不预警；持续低库存一个周期，恢复再降低形成新周期。
+- 数量 / 金额 JSON 为十进制字符串，NUMERIC、BigDecimal、Decimal.js / stringMode 协作。
+- 不同币种不相加，数量按单位分组，领用使用批次单价快照。
+- 净消耗按本期领用减本期实际归还，可跨期为负；资金占比为领用金额，未扣归还；报废单列。
+- 学期配置影响默认范围，自定义日期优先；库存业务后时区锁定。
+- 导出最多 10,000 行，XLSX 超精度数值按文本保存，合计由后端计算。
 
-- 完好材料归还原明细批次，累计不超领用量，不冲回月度额度。
-- 报废只扣仓库余额，不再次扣已领出损坏材料。业务、库存、流水、预警与通知登记同事务；UUID 幂等重试不重复计量。
-- 总库存严格小于安全库存才预警，阈值 0 不预警；恢复后解除，重新降低产生新周期。邮件提交后发送，失败不回滚库存。
-- 领用 / 归还按原单价快照及实际日期统计。净消耗为本期领用减本期归还，允许跨期负数；仓库报废单独计量。
-- 不同币种不直接相加，数量按单位分别展示。资金占比采用领用金额（未扣归还）。
-- 未配置学期时：秋季 Y-09-01 至 Y+1-01-31，春季 Y+1-02-01 至 Y+1-08-31。配置后使用该学年保存范围，自定义日期优先。
-- 导出最多 10,000 行；XLSX 超过 15 位有效数字以文本保留精度，合计由后端计算。[六份真实样本](docs/examples/sprint05/README.md)。
+## 测试与验收依据
 
-## 测试与验收
+### 自己的隔离环境
+
+推荐 Windows 便携 PostgreSQL 路径，8081 / 5180 / 9098 无其他测试占用：
 
 ```powershell
 ./scripts/portable-postgres.ps1 test-db
 ./scripts/test-backend.ps1
+
+. ./scripts/load-env.ps1
+Push-Location ./backend
+./mvnw.cmd -B verify
+Pop-Location
 npm.cmd --prefix frontend run typecheck
 npm.cmd --prefix frontend run build
 ./scripts/test-browser.ps1
-./scripts/test-browser.ps1 -OAuthMock  # 本机 Mock OAuth + 独立 Demo 隔离
-./scripts/smoke-api.ps1  # 日常后端运行时的只读认证冒烟
+./scripts/test-browser.ps1 -OAuthMock
+
+python ./scripts/audit-release.py
+./scripts/check-release.ps1
 ```
 
-浏览器脚本构建最新生产资源，在独立 `caizhitong_v070_demo_e2e_test` 启动 8081 / 5180，执行真实 API 冒烟及桌面 / 移动测试，结束后只关闭自己的服务。每轮清理专用 E2E 业务夹具和配置，保留账户及迁移历史；参数与 JDBC 检查双重拒绝重置日常库。后端测试只允许 `_test` 数据库。
+审计另需 Python 3。普通套件执行五组 API 冒烟与 70 项业务 / 动效用例，OAuthMock 执行 18 项认证 / Demo / 视觉用例。CI 另在 Mock 环境跑 6 项侧栏 / 抽屉测试，不能将远程 24 项说成远程全量 70 项。
 
-默认使用安装的 Chrome。没有 Chrome 时，前端执行 `npx.cmd playwright install chromium` 并设置 `$env:E2E_BROWSER_CHANNEL='chromium'`。移动端为 Chromium 模拟，不代表真机 Safari。
+默认 Chrome，可设置 E2E_BROWSER_EXECUTABLE 为浏览器完整路径，或在 frontend 安装 Playwright Chromium 并设置 E2E_BROWSER_CHANNEL=chromium。
 
-**v0.7.0 隔离复核（2026-11-04）**：后端 Maven verify **195/195**，原业务桌面 / 手机 **64/64**、OAuth / Demo 专项 **14/14**，TypeScript / 生产构建通过。当前 PR CI 的最终结果见 [v0.7.0 记录](docs/V0.7.0-GITHUB-OAUTH.md)；[隔离设计](docs/DEMO-ISOLATION.md)和[验收清单](docs/V0.7.0-ACCEPTANCE.md)明确区分本地 Mock 与待确认的生产真实 OAuth。
+后端仅接受 _test 数据库，使用 caizhitong_test 与 caizhitong_v070_demo_e2e_test。浏览器会重置专用夹具、保留账户与迁移，拒绝占用端口，不关闭用户已有服务。一键浏览器脚本依赖便携库逻辑，Docker 用户先阅读[贡献指南](CONTRIBUTING.md)，不要同时启动便携实例。
 
-**Sprint 06 最终结果（2026-11-04）：后端 147/147、Chrome 桌面 / 移动模拟 64/64 通过，失败及跳过均为 0。** TypeScript、生产构建、五组隔离真实 HTTP 冒烟、日常健康 / 三账户认证及敏感路径检查通过；启停 / 密码重置另重复 6 次通过。浏览器预览服务使用 Node 24.22.1。原 Sprint 05 的 122 项后端与 56 项浏览器保留回归。修复过程和实际命令见 [Sprint 06](docs/SPRINT-06.md)。报告位于 `backend/target/surefire-reports`、`frontend/playwright-report`，不提交测试日志或令牌。
+### 实际结果
 
-**首次源码发布前复验（2026-11-04）**：重新执行 `npm ci`、Maven Wrapper `verify`、类型检查、构建和完整浏览器；后端 **147/147**、浏览器 **64/64** 及五组 API 冒烟全部通过。GitHub Actions 配置执行 PostgreSQL 15 集成测试与前端检查 / 构建，远程真实状态单独记录在 [发布记录](docs/RELEASE-v0.6.0.md)，不将本地结果冒充远程 CI。
-
-**远程 CI 已实测通过**：[首次源码提交的 Actions 运行](https://github.com/JouCristian/CaiZhiTong/actions/runs/41682135755)在 Ubuntu / PostgreSQL 15 上通过 147 项后端测试，前端安装、类型检查和生产构建通过。最新 `main` 状态由顶部 CI 徽章实时展示；完整浏览器 64 项目前在本地 Windows 执行。
-
-**云适配阶段历史验证（2026-11-04）**：后端 **173/173**（新增 26 项）、浏览器 **64/64**、类型检查、生产构建和五组 HTTP 冒烟通过；新增存储使用本机 HTTP 夹具及独立 PostgreSQL 私有 Schema 验证。该阶段当时按用户要求暂停真实平台测试；后续 v0.6.0 已完成云部署，见在线演示及 Cloud Deployment 02 记录。CI 新增 Docker 构建与 512 MiB 隔离启动检查，实际结果见工作流。[完整记录](docs/CLOUD-DEPLOYMENT-01.md)。
-
-## 开发历程
-
-| Sprint | 交付 |
+| 范围 | 结果与依据 |
 | --- | --- |
-| [01](docs/DEVELOPMENT.md) | 工程、认证权限与 Apple 风格后台 |
-| [02](docs/SPRINT-02.md) | 材料分类与档案 |
-| [03](docs/SPRINT-03.md) | 库存入库、流水、二维码 |
-| [04](docs/SPRINT-04.md) | 领用、月度额度、中文凭证 |
-| [05](docs/SPRINT-05.md) | 归还报废、预警邮件、六种导出 |
-| [06](docs/SPRINT-06.md) | 用户权限、全局设置、真实仪表盘与收尾 |
+| 冻结应用基线 CI | [41954664321](https://github.com/JouCristian/CaiZhiTong/actions/runs/41954664321)，对应 2e1e16e，成功 |
+| 后端 | Maven **195/195**，真实 PostgreSQL，0 失败 / 错误 / 跳过 |
+| CI 浏览器 | OAuth / Demo / 视觉 **18/18**，侧栏 / 抽屉 **6/6** |
+| CI 构建 | npm ci、类型检查、生产构建、Docker、512 MiB 健康 / 401 / OOM 检查通过 |
+| 本地完整业务 | **70/70**；进入动画最终修复后专项 **6/6**，未冒称再次全量跑 70 |
+| 线上 UI 与业务保全 | **29 项**，包含桌面 / 手机、管理员登录、原库存、私有照片哈希 |
+| 重部署持久化 | 另 **6 次 HTTP** 检查，健康 UP、前端 HTTP 200 |
 
-[完整开发日志](docs/DEVELOPMENT.md)保留各轮实际决策、修复与测试过程。历史未完成项以最新记录为准。
+数字对应相应阶段，不是每次提交自动运行的总数；最新看 CI 徽章。命令与修复见 [UI 精修](docs/UI-POLISH-01.md)、[生产 OAuth](docs/CLOUD-DEPLOYMENT-03.md)、[冻结记录](docs/RELEASE-v0.7.0.md)。真实 GitHub 授权由持有人亲自完成，Mock 不等于重新执行真实授权。
 
-六轮为实际开发阶段记录，不代表六条历史 Git Commit。首次源码发布从当前已验收工程创建真实初始提交，不回填或伪造开发历史。
+## 项目开发历程
 
-## 在线演示
+先以六轮 Sprint 完成本地业务与人工验收，再源码发布、云适配、公开登录隔离和 UI 精修。以下为**开发阶段记录**，不伪造 Git Commit 时间线；首次公开前的过程保存在日志中。
 
-| 入口 | 地址 |
+| 阶段 | 成果 | 记录 |
+| --- | --- | --- |
+| Sprint 01 | 工程、PostgreSQL、V1、BCrypt / JWT、六角色、后台框架 | [开发日志](docs/DEVELOPMENT.md)、[历史验收](docs/ACCEPTANCE.md) |
+| Sprint 02 | 分类、自动编码档案、查询分页与权限 | [Sprint 02](docs/SPRINT-02.md) |
+| Sprint 03 | 多明细入库、批次、不可变流水、二维码 | [Sprint 03](docs/SPRINT-03.md)、[验收](docs/SPRINT-03-ACCEPTANCE.md) |
+| Sprint 04 | 扫码领用、额度、幂等扣减、中文 PDF | [Sprint 04](docs/SPRINT-04.md)、[验收](docs/SPRINT-04-ACCEPTANCE.md) |
+| Sprint 05 | 完好归还、报废、照片、预警、报表 | [Sprint 05](docs/SPRINT-05.md)、[验收](docs/SPRINT-05-ACCEPTANCE.md) |
+| Sprint 06 | 用户、设置、真实仪表盘、全功能回归 | [Sprint 06](docs/SPRINT-06.md)、[最终验收](docs/FINAL-ACCEPTANCE.md) |
+| v0.6.0 | 审计、许可证、Wrapper、源码公开与 CI | [发布记录](docs/RELEASE-v0.6.0.md) |
+| Cloud Deployment 01 | Storage、私有 Schema、独立 Flyway、首次管理员，先本地验证 | [云适配](docs/CLOUD-DEPLOYMENT-01.md) |
+| Cloud Deployment 02 | Supabase + Render + Vercel、链路与持久化 | [云部署](docs/CLOUD-DEPLOYMENT-02.md) |
+| v0.7.0 / PR #1 | GitHub OAuth、独立 Demo、安全隔离、受控上线 | [开发](docs/V0.7.0-GITHUB-OAUTH.md)、[隔离](docs/DEMO-ISOLATION.md)、[生产](docs/CLOUD-DEPLOYMENT-03.md) |
+| UI / PR #2 | React Bits、自有标识、侧栏与抽屉修复 | [UI 精修与发布](docs/UI-POLISH-01.md) |
+| v0.7.0 冻结 | 固定基线、展示文档、贡献与 PR 规范 | [冻结说明](docs/RELEASE-v0.7.0.md)、[贡献](CONTRIBUTING.md) |
+
+历史文档保留当时的未开发 / 未部署及失败记录，不代表冻结版仍缺少这些能力。现状先读本 README、冻结说明与最新 API 章节，再查原始过程。
+
+## 云端部署与维护
+
+正式方案为 **Vercel + Render + Supabase PostgreSQL / 私有 Storage**。不使用 Neon、Cloudflare R2 或 Supabase Auth，OAuth 由 Spring Security OAuth2 Client 接入。
+
+| 平台 | 配置要点 |
 | --- | --- |
-| React 工作空间 · Vercel | https://caizhitong-eight.vercel.app |
-| Spring Boot API · Render Free | https://caizhitong-api.onrender.com |
-| HTTPS 健康检查 | https://caizhitong-api.onrender.com/actuator/health |
+| Vercel | Root frontend，npm ci / build / dist，SPA 重写避开 assets、brand，仅公开 API 与超时 |
+| Render | Docker context backend、backend/Dockerfile、Java 17、平台端口和健康，受限 JVM / 池 |
+| PostgreSQL | SSL Session pooler 5432、私有 Schema、独立 Flyway，不用 6543 Transaction pooler |
+| Storage | 私有 caizhitong-attachments，5 MB，JPEG / PNG / WebP，仅后端鉴权代理 |
+| GitHub OAuth | 后端 Secret、HTTPS 回调、固定前端回跳 |
 
-后端连接 Supabase PostgreSQL 与私有 Storage，前端不直接访问数据库。云库只包含独立验收数据，不导入本地学生信息。管理员由一次性受控初始化创建，初始化开关随后关闭、Render 中的一次性密码变量移除；需要访问账户时请联系项目维护者。
+Supabase Data API 已关闭，业务 Schema 不公开暴露。CORS、PUBLIC_WEB_URL 使用准确正式源，更换域名同步 API、OAuth、CORS 和二维码源。
 
-![真实云端工作台](docs/screenshots/cloud-dashboard-desktop.png)
+**main 已连接自动部署，合并 PR 会影响正式站点。** 贡献者在本地 / 自己的 Fork 验证，不索取生产凭据。预览 READY 不等于正式上线，预览域名不自动获得生产 CORS。冻结不会自动关闭部署，也不代表已启用 GitHub 分支保护。
 
-业务链路、权限、六种报表下载、照片认证读取、重新部署后的库存与照片持久性均已在真实云环境验证。桌面及手机浏览器验证记录见 [Cloud Deployment 02](docs/CLOUD-DEPLOYMENT-02.md)。免费实例不提供可用性保证，休眠、冷启动或平台维护可能暂时延迟响应。
+复现、备份边界、一次性管理员与 OAuth 恢复见 [DEPLOYMENT](docs/DEPLOYMENT.md)。
 
-## 发布与当前边界
+## 参与贡献
 
-前端使用 Vercel SPA 重写，后端保留 local 存储并支持 Supabase 私有 Storage、独立 Flyway 连接、私有业务 Schema 与受控首次管理员初始化。[部署说明](docs/DEPLOYMENT.md)记录当前配置；[源码发布](docs/RELEASE-v0.6.0.md)、[本地云适配](docs/CLOUD-DEPLOYMENT-01.md)与[真实云部署](docs/CLOUD-DEPLOYMENT-02.md)保留各阶段的验证边界。尚未创建正式 Release 或版本标签。
+欢迎缺陷、文档、测试、无障碍和兼容性改进。涉及新业务、权限、统计口径、迁移、依赖或视觉方向，请先开 Issue 说明范围。
 
-- 财务表是通用模板，未对接真实学校财务系统；没有真实 SMTP 凭据时，不宣称外部邮箱投递通过。
-- 取消登记可能保留未关联照片，暂不自动清理；发送中断可能留下 SENDING，需核查实际投递后处理。
-- JWT 无刷新令牌或逐设备撤销。退出清除当前浏览器会话；停用 / 密码重置撤销全部旧会话，角色变更在下一次请求生效。
-- 单实例课程项目，复杂审批、LDAP、AI 预测、小程序、多实例存储和生产压测未实现。
-- 后续可完善附件清理、审计、备份恢复及财务模板。短时云验收不等同于长期运行或并发压力测试；免费资源配额和休眠策略以平台当前政策为准。
+流程：**Fork → 最新 main 建分支 → 隔离验证 → Push 自己的 Fork → 向本仓库 main 提 PR → 评审修正 → 维护者合并。** 无需上游写权限，不直接 Push 上游 main。
 
-## 许可证
+- [CONTRIBUTING](CONTRIBUTING.md)：完整命令、验证、迁移与评审规则。
+- [PR 模板](.github/PULL_REQUEST_TEMPLATE.md)：动机、验证、截图、兼容与安全检查。
+- [缺陷反馈](https://github.com/JouCristian/CaiZhiTong/issues/new?template=bug_report.yml) / [改进建议](https://github.com/JouCristian/CaiZhiTong/issues/new?template=feature_request.yml)。
+- [SECURITY](SECURITY.md)：漏洞、令牌和私有数据问题不要开公开 Issue。
 
-项目自有代码使用 [MIT](LICENSE)。登录动效采用的 React Bits 源文件保留其 [MIT + Commons Clause](frontend/src/motion/reactbits/LICENSE.md)，不由本项目 MIT 重新授权；来源和修改见 [NOTICE](frontend/src/motion/reactbits/NOTICE.md)。字体使用独立 OFL，见[字体说明](backend/src/main/resources/fonts/README.md)；标准 Maven Wrapper 使用 [Apache-2.0](backend/.mvn/wrapper/LICENSE)。其他依赖遵循各自许可证。
+不要夹带无关重排、真实用户资料、秘密、日志、产物或数据库备份。第三方组件 / 素材须说明来源与许可，项目 MIT 不覆盖第三方限制。
 
-登录视觉、侧栏与抽屉动效已通过 [PR #2](https://github.com/JouCristian/CaiZhiTong/pull/2) 上线，正式站桌面 / 手机及原库存与私有附件检查共 29 项通过。实现、许可、CI 和真实截图见 [UI 精修 01](docs/UI-POLISH-01.md)。
+## 文档索引
 
+| 需求 | 入口 |
+| --- | --- |
+| 冻结基线与维护边界 | [RELEASE-v0.7.0](docs/RELEASE-v0.7.0.md) |
+| 贡献与提 PR | [CONTRIBUTING](CONTRIBUTING.md) |
+| 接口权限 | [API](docs/API.md)，按最新章节阅读 |
+| 表结构与迁移 | [数据库说明](database/README.md) |
+| 开发过程 | [DEVELOPMENT](docs/DEVELOPMENT.md) |
+| 部署配置 | [DEPLOYMENT](docs/DEPLOYMENT.md) |
+| OAuth | [开发记录](docs/V0.7.0-GITHUB-OAUTH.md) |
+| 正式 / Demo 隔离 | [DEMO-ISOLATION](docs/DEMO-ISOLATION.md) |
+| 人工验收 | [最终验收](docs/FINAL-ACCEPTANCE.md)、[v0.7.0 验收](docs/V0.7.0-ACCEPTANCE.md) |
+| 视觉与生产证据 | [UI-POLISH-01](docs/UI-POLISH-01.md) |
+| 导出样本 | [examples](docs/examples/README.md) |
+| 安全反馈 | [SECURITY](SECURITY.md) |
 
+## 当前限制与后续方向
+
+- 单实例课程项目，未完成生产压测、故障切换和灾难恢复演练，免费平台有休眠与配额限制。
+- 无审批、库存预占、LDAP、AI 预测、小程序或独立采购订单；采购员角色不等于采购审批系统。
+- JWT 无刷新令牌或逐设备撤销，到期重新登录；OAuth 内存握手在重启时需重新发起。
+- 无真实 SMTP 时不宣称外部投递成功，发送中断可能留下 SENDING，需核查。
+- 取消报废可能留下未关联照片，暂不自动清理；数据库与附件分别备份，切换存储不自动迁移。
+- 通用财务模板未对接学校系统，不是正式会计或审计系统。
+- 未覆盖所有真机浏览器，Ant Design 公共块仍有体积提示。
+- React Bits 含 Commons Clause，不能将全部第三方文件理解为无额外限制的 MIT。
+
+审计记录、附件清理、备份恢复、更多浏览器与性能优化属于候选方向，不是冻结版已实现能力或本轮开发承诺。
+
+## 许可证与第三方说明
+
+项目自有代码采用 [MIT](LICENSE)，同时遵守独立许可：
+
+| 组件 / 素材 | 许可 |
+| --- | --- |
+| React Bits 源文件 | [MIT + Commons Clause](frontend/src/motion/reactbits/LICENSE.md)，保留[来源和修改](frontend/src/motion/reactbits/NOTICE.md)，不由项目 MIT 重新授权 |
+| 中文字体 | OFL，见[字体说明](backend/src/main/resources/fonts/README.md) |
+| Maven Wrapper | [Apache-2.0](backend/.mvn/wrapper/LICENSE) |
+| 其他依赖 | 遵循各自许可证，版本见锁文件与 Maven 配置 |
+
+项目使用自有标识。GitHub 标识用于认证入口，Apple 风格仅指设计方向，不代表相关品牌的官方合作或背书。
