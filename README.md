@@ -47,7 +47,7 @@
 
 | 登录 | 工作台 |
 | --- | --- |
-| <img src="docs/screenshots/login-desktop.png" alt="真实登录页面" width="420"> | <img src="docs/screenshots/sprint06-dashboard-desktop.png" alt="真实业务工作台" width="420"> |
+| <img src="docs/screenshots/ui-polish-cloud-login-desktop.png" alt="正式站登录页面与品牌动效" width="420"> | <img src="docs/screenshots/sprint06-dashboard-desktop.png" alt="真实业务工作台" width="420"> |
 | 材料管理 | 库存管理 |
 | <img src="docs/screenshots/sprint02-materials-desktop.png" alt="材料档案与分类" width="420"> | <img src="docs/screenshots/sprint03-inventory-desktop.png" alt="库存与批次" width="420"> |
 | 领用 | 报表 |
@@ -70,9 +70,9 @@ v0.7.0 独立演示界面（本机隔离 PostgreSQL + Mock OAuth 的真实浏览
 
 | 正式登录入口 | 独立公开演示工作台 |
 | --- | --- |
-| <img src="docs/screenshots/cloud-v070-login-desktop.png" alt="已上线的 GitHub 与密码登录入口" width="420"> | <img src="docs/screenshots/cloud-v070-demo-desktop.png" alt="正式网站独立合成游客演示空间" width="420"> |
+| <img src="docs/screenshots/ui-polish-cloud-login-desktop.png" alt="已上线的 GitHub 与密码登录入口" width="420"> | <img src="docs/screenshots/cloud-v070-demo-desktop.png" alt="正式网站独立合成游客演示空间" width="420"> |
 
-[手机登录截图](docs/screenshots/cloud-v070-login-mobile.png)。截图来自正式 Vercel / Render；演示工作台使用独立合成 GUEST 验收账户，不展示真实 GitHub 个人资料。真实 GitHub 授权与复登由账户持有人手动完成，并经数据库指纹核验。
+[手机登录截图](docs/screenshots/ui-polish-cloud-login-mobile.png)。截图来自正式 Vercel / Render；演示工作台使用独立合成 GUEST 验收账户，不展示真实 GitHub 个人资料。真实 GitHub 授权与复登由账户持有人手动完成，并经数据库指纹核验。
 
 </details>
 
@@ -303,6 +303,6 @@ npm.cmd --prefix frontend run build
 
 项目自有代码使用 [MIT](LICENSE)。登录动效采用的 React Bits 源文件保留其 [MIT + Commons Clause](frontend/src/motion/reactbits/LICENSE.md)，不由本项目 MIT 重新授权；来源和修改见 [NOTICE](frontend/src/motion/reactbits/NOTICE.md)。字体使用独立 OFL，见[字体说明](backend/src/main/resources/fonts/README.md)；标准 Maven Wrapper 使用 [Apache-2.0](backend/.mvn/wrapper/LICENSE)。其他依赖遵循各自许可证。
 
-登录视觉、侧栏与抽屉动效、测试和截图见 [UI 精修 01](docs/UI-POLISH-01.md)，发布状态以该记录及实际生产部署为准。
+登录视觉、侧栏与抽屉动效已通过 [PR #2](https://github.com/JouCristian/CaiZhiTong/pull/2) 上线，正式站桌面 / 手机及原库存与私有附件检查共 29 项通过。实现、许可、CI 和真实截图见 [UI 精修 01](docs/UI-POLISH-01.md)。
 
 

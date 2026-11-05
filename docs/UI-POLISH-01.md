@@ -68,3 +68,25 @@ OAuth / 视觉最终回归 **18/18 通过**（36.4 秒），保留原 14 项认�
 ## 发布边界
 
 初次本地交付时未推送或部署。用户随后确认抽屉修复正常并授权合并上线。发布准备增加 Vercel 的 `brand/` 静态路径例外，避免新 SVG 标识进入 SPA 重写；CI 在原 OAuth / Demo 18 项后执行 6 项侧栏 / 抽屉回归。沿用 v0.7.0 与现有生产平台，不创建 Release、付费资源或新项目；上线结果以实际 CI 与平台状态为准。
+
+## 生产发布 · 2026-11-05
+
+用户完成视觉验收并授权上线后，发布审计覆盖 365 个候选 / 跟踪文件及 Git 对象，无检测到的秘密、危险路径或失效 Markdown 链接；原 V1–V7 和后端业务代码没有修改。
+
+- 功能提交：`c460e2db1b0ed3f59f268f6024efe9f8d9922a37`。
+- [PR #2](https://github.com/JouCristian/CaiZhiTong/pull/2) 核对 Head SHA 后正常合并，保留历史；main 合并提交 `df4778f0ab9361cfa39649806f954493c1f41ff8`。
+- [Push CI 41953001056](https://github.com/JouCristian/CaiZhiTong/actions/runs/41953001056) 与 [PR CI 41953034839](https://github.com/JouCristian/CaiZhiTong/actions/runs/41953034839) 实际成功。远程 Maven **195/195**，OAuth / 视觉 **18/18**、侧栏 / 抽屉 **6/6**，npm ci / typecheck / build、Docker 构建与 512 MiB 容器运行均通过。
+- [合并后 main CI 41953820082](https://github.com/JouCristian/CaiZhiTong/actions/runs/41953820082) 同样实际成功。
+- Render 自动部署 `dep-dblucoks728c73f5c7c0` 为 **live**，运行合并提交，2026-11-05 02:16:31 UTC 完成；HTTPS 健康 UP。
+- Vercel 自动部署 `dpl_9hMZttaFjAYJvEFHPTyCwxYwbkbX` 为 **READY / production**。通过正式域名解析接口核验 `caizhitong-eight.vercel.app` 指向上述合并提交，未将预览部署算作上线。
+
+正式前端 https://caizhitong-eight.vercel.app，后端 https://caizhitong-api.onrender.com。上线后 **29 项**实际检查通过：
+
+- HTTPS 健康、OAuth enabled、未登录 API 401；新品牌 SVG 返回 `image/svg+xml`，不被 SPA 重写。
+- 真实桌面 / 手机登录布局、粒子与字环加载、手机静态回退，无横向溢出或未捕获页面错误。
+- 原生产管理员密码登录、原正式材料读取正常；原验收批次余额和 Supabase 私有附件 SHA-256 保持一致。
+- 侧栏收起 80px / 展开 256px，收起无横向溢出；正式站桌面 / 手机各连续打开两次材料抽屉，第一帧离屏、多帧连续滑入，取消后移除面板，未保存任何业务数据。
+
+真实截图：[正式桌面登录](screenshots/ui-polish-cloud-login-desktop.png)、[正式手机登录](screenshots/ui-polish-cloud-login-mobile.png)。截图在输入凭据前采集，不包含密码、Token 或私人账户资料。首次本机验收脚本因原生 Node fetch 未采用既有网络代理而超时，使用环境代理后重新执行全部通过，未修改生产服务来规避客户端网络问题。
+
+本次保留 GitHub OAuth 的正式配置，并验证入口可用和后台开关为 true；未重新操作真实 GitHub 授权，既有持有人真实授权记录仍见 [Cloud Deployment 03](CLOUD-DEPLOYMENT-03.md)。生产检查只读取业务，密码登录按原逻辑更新最近登录时间。没有创建 Release、云项目或付费资源。
