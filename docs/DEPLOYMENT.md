@@ -2,6 +2,8 @@
 
 当前架构：GitHub main → Vercel React 前端 → Render Java 17 / Spring Boot → Supabase PostgreSQL + 私有 Storage。历史发布记录中的其他供应商方案已被本方案替代。
 
+当前版本已按 [v0.7.0 冻结说明](RELEASE-v0.7.0.md) 固定应用范围。main 仍连接平台自动部署，文档合并也可能重建服务；冻结不代表关闭部署或自动回滚数据库。当前 UI 及最近发布证据见 [UI 精修](UI-POLISH-01.md)，维护 PR 流程见 [贡献指南](../CONTRIBUTING.md)。
+
 **真实云部署已完成初始业务验收。** [前端](https://caizhitong-eight.vercel.app) · [后端健康](https://caizhitong-api.onrender.com/actuator/health)。历史本地验证见 [Cloud Deployment 01](CLOUD-DEPLOYMENT-01.md)，初始业务配置见 [Cloud Deployment 02](CLOUD-DEPLOYMENT-02.md)，当前 v0.7.0 生产 OAuth 与增量迁移验收见 [Cloud Deployment 03](CLOUD-DEPLOYMENT-03.md)。以下步骤供复现和维护；已有项目不要重复创建。
 
 ## 配置入口

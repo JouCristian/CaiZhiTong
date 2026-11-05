@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 安全问题与凭据泄漏
+    url: https://github.com/JouCristian/CaiZhiTong/security/policy
+    about: 不在公开 Issue 中披露漏洞、Token 或私人资料，先阅读安全反馈路径。
+  - name: 使用与贡献帮助
+    url: https://github.com/JouCristian/CaiZhiTong/blob/main/SUPPORT.md
+    about: 先检查启动、权限、Free 冷启动与贡献说明。

@@ -2,6 +2,8 @@
 
 PostgreSQL 15。默认数据库为 `caizhitong`，自动测试单独使用 `caizhitong_test`，禁止将 TEST_DB_URL 指向业务库。
 
+**冻结版本现状（2026-11-05）：v0.7.0，生产已执行 V1–V7，公开体验使用独立 demo_* 表；浏览器专用库为 caizhitong_v070_demo_e2e_test。** 下方按开发阶段保留结构和验收记录，其中“本轮无 V7”“生产仍为 V6”等句子是当时状态，不是当前环境。最新生产依据见 [OAuth 上线](../docs/CLOUD-DEPLOYMENT-03.md)、[UI 发布](../docs/UI-POLISH-01.md)和[冻结说明](../docs/RELEASE-v0.7.0.md)。
+
 ## 结构与迁移
 
 唯一迁移源位于 `backend/src/main/resources/db/migration/`。V1 建立用户、角色、关联表及六类角色，包含用户名唯一约束、角色唯一约束、复合主键、外键和角色关联索引。时间戳使用 TIMESTAMPTZ。后续更新用户时应同步 updated_at。
@@ -14,7 +16,7 @@ PostgreSQL 15。默认数据库为 `caizhitong`，自动测试单独使用 `caiz
 
 两种方式共用配置和端口，选择一种运行，不能同时占用 5432。portable 脚本需要 JDK 17 和 Windows 自带 tar。
 
-创建测试库：portable 使用 `scripts/portable-postgres.ps1 test-db`；Docker 使用 README 中的 createdb 命令。所有迁移由 Spring Boot 自动应用，不手工建表。
+创建测试库：portable 使用 `scripts/portable-postgres.ps1 test-db`；Docker 使用[贡献指南](../CONTRIBUTING.md)中的 createdb 命令。所有迁移由 Spring Boot 自动应用，不手工建表。
 
 停止 portable：`scripts/portable-postgres.ps1 stop`。停止 Docker：`docker compose stop`。这些命令保留数据。请勿在没有备份时删除 volume 或 .runtime/pgdata。
 

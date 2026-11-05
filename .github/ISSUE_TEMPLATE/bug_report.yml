@@ -1,0 +1,59 @@
+name: 缺陷反馈
+description: 报告可复现的问题；敏感问题请使用安全反馈路径。
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        请先搜索已有 Issue，并阅读 README / SUPPORT.md。
+        不要附密码、Token、Cookie、完整环境文件、真实用户或财务记录。
+        疑似漏洞按 SECURITY.md 私密报告，不在这里写可利用细节。
+  - type: input
+    id: version
+    attributes:
+      label: 版本或 Commit
+      description: 例如 v0.7.0 或自己的 git rev-parse --short HEAD；线上问题说明正式 / 预览。
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: 环境与角色
+      description: 操作系统、浏览器、Node / JDK / PostgreSQL 版本，以及 GUEST / STUDENT 等角色；不写账户密码。
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 最小复现步骤
+      placeholder: |
+        1. 在自己的隔离环境打开……
+        2. 输入合成数据……
+        3. 点击……
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 预期结果
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际结果
+      description: 状态码、脱敏错误片段或合成截图；不要粘贴完整日志。
+    validations:
+      required: true
+  - type: textarea
+    id: tried
+    attributes:
+      label: 已尝试与补充信息
+      description: 是否等待 Free 唤醒、重试、检查配置；频率、回归版本及可选修复线索。
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: 公开反馈确认
+      options:
+        - label: 已移除秘密与私人资料，且这不是应私密报告的可利用漏洞。
+          required: true
