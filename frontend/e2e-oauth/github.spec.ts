@@ -118,7 +118,7 @@ test('administrator disable revokes GitHub login and existing JWT', async ({ pag
 })
 test('password login remains available as a secondary entry', async ({ page }, info) => {
   await page.goto('/login'); await expect(page.getByRole('button', { name: '继续使用 GitHub', exact: true })).toBeEnabled()
-  await expect(page.getByLabel('用户名', { exact: true })).toHaveCount(0)
+  await expect(page.getByLabel('用户名', { exact: true })).toBeHidden()
   const dir = resolve(import.meta.dirname, '../../docs/screenshots'); mkdirSync(dir, { recursive: true })
   await page.screenshot({ path: resolve(dir, 'v070-login-' + info.project.name + '.png'), fullPage: false, animations: 'disabled' })
   await page.getByRole('button', { name: '使用账号密码登录', exact: true }).click()

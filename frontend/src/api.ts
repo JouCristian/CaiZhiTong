@@ -40,6 +40,7 @@ export class ApiError extends Error {
   constructor(
     public status: number,
     message: string,
+    public kind?: 'timeout' | 'network' | 'aborted' | 'protocol',
   ) {
     super(message)
   }
@@ -92,10 +93,15 @@ export async function request<T>(
   path: string,
   options: RequestInit = {},
   authenticated = true,
+  timeout = requestTimeout,
 ): Promise<T> {
   const token = authenticated ? getToken() : null
   const controller = new AbortController()
-  const timer = window.setTimeout(() => controller.abort(), requestTimeout)
+  let timedOut = false
+  const abort = () => controller.abort()
+  if (options.signal?.aborted) abort()
+  else options.signal?.addEventListener('abort', abort, { once: true })
+  const timer = window.setTimeout(() => { timedOut = true; controller.abort() }, timeout)
   try {
     const response = await fetch(base + path, {
       ...options,
@@ -106,7 +112,10 @@ export async function request<T>(
         ...options.headers,
       },
     })
-    const body = (await response.json().catch(() => null)) as {
+    const body = (await response.json().catch(error => {
+      if (controller.signal.aborted) throw error
+      return null
+    })) as {
       code: number
       message: string
       data: T
@@ -121,17 +130,19 @@ export async function request<T>(
         response.status,
         body?.message || '服务暂时不可用，请稍后重试',
       )
-    if (!body || body.code !== 0) throw new ApiError(502, '服务响应格式不正确')
+    if (!body || body.code !== 0) throw new ApiError(502, '服务响应格式不正确', 'protocol')
     return body.data
   } catch (error) {
     if (error instanceof ApiError) throw error
     throw new ApiError(
       0,
-      controller.signal.aborted
+      timedOut
         ? '请求超时，请稍后重试'
-        : '无法连接服务，请检查后端是否启动',
+        : controller.signal.aborted ? '请求已取消' : '无法连接服务，请检查后端是否启动',
+      timedOut ? 'timeout' : controller.signal.aborted ? 'aborted' : 'network',
     )
   } finally {
     window.clearTimeout(timer)
+    options.signal?.removeEventListener('abort', abort)
   }
 }

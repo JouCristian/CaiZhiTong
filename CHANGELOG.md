@@ -2,6 +2,13 @@
 
 本文件按项目阶段概括成果，详细实现和失败修复链接到原始开发记录。阶段版本不等于当时已经存在 Git 标签或 GitHub Release；首次源码公开前的 Sprint 没有伪造历史提交。
 
+## 未发布 · 登录连接修复候选
+
+- OAuth 配置使用 8 秒探测与有限重试，补充手动重新连接、网络 / 响应异常 / 关闭状态。
+- 保留密码输入，取消离页请求与旧定时器，合并重复提交，不改变授权协议。
+- 记录 Render 跨网络零字节超时、受控重启未恢复及 Supabase 只读检查；不把前端补丁当成后端恢复。
+- 仅在 fix/render-login-connectivity 分支与 PR 交付，v0.7.0 标签不变。依据见[专项记录](docs/FIX-LOGIN-CONNECTIVITY.md)。
+
 ## v0.7.0 · 2026-11-05 冻结
 
 - Spring Security GitHub OAuth、GitHub 数字 ID 稳定关联、默认 GUEST、浏览器绑定的短时一次性交换，原密码登录保留。

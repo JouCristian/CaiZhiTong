@@ -4,10 +4,13 @@ import { resolve } from 'node:path'
 
 test.use({ reducedMotion: 'no-preference' })
 async function login(page: import('@playwright/test').Page) {
+  const configuration = page.waitForResponse(response => response.url().endsWith('/api/auth/oauth/config'))
   await page.goto('/login')
+  const config = await (await configuration).json()
   const githubEntry = page.getByRole('button', { name: '继续使用 GitHub', exact: true })
   await expect(githubEntry).toBeVisible()
-  await expect(githubEntry).not.toHaveClass(/ant-btn-loading/)
+  if (config.data.githubEnabled) await expect(githubEntry).toBeEnabled()
+  else await expect(page.getByText('GitHub 登录尚未启用，仍可使用账号密码登录。', { exact: true })).toBeVisible()
   const passwordEntry = page.getByRole('button', { name: '使用账号密码登录', exact: true })
   if (await passwordEntry.isVisible()) await passwordEntry.click()
   await page.getByLabel('用户名', { exact: true }).fill('admin')
