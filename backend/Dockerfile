@@ -16,7 +16,7 @@ WORKDIR /app
 COPY --from=build /build/target/backend-0.7.0.jar app.jar
 ENV STORAGE_ROOT=/app/uploads \
     DEMO_ENABLED=false \
-    JAVA_TOOL_OPTIONS="-Djava.awt.headless=true -XX:MaxRAMPercentage=40 -XX:MaxMetaspaceSize=128m -XX:ReservedCodeCacheSize=48m -XX:MaxDirectMemorySize=24m -XX:+UseSerialGC -Xss512k -XX:+ExitOnOutOfMemoryError"
+    JAVA_TOOL_OPTIONS="-Djava.awt.headless=true -XX:TieredStopAtLevel=1 -XX:MaxRAMPercentage=40 -XX:MaxMetaspaceSize=128m -XX:ReservedCodeCacheSize=48m -XX:MaxDirectMemorySize=24m -XX:+UseSerialGC -Xss512k -XX:+ExitOnOutOfMemoryError"
 USER app
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]

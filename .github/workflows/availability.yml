@@ -1,0 +1,31 @@
+name: Production availability (on demand)
+on:
+  workflow_dispatch:
+    inputs:
+      timeout_seconds:
+        description: 'Per-endpoint total deadline (1-240 seconds); exactly one GET per endpoint'
+        default: '180'
+        required: true
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+      - name: Check public health and OAuth capability (no credentials)
+        env:
+          PROBE_TIMEOUT_SECONDS: ${{ inputs.timeout_seconds || '180' }}
+          PROBE_OUTPUT: availability.jsonl
+        run: node scripts/check-availability.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: public-availability-${{ github.run_id }}
+          path: availability.jsonl
+          retention-days: 30
+          if-no-files-found: warn

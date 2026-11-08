@@ -480,6 +480,7 @@ Supabase Data API 已关闭，业务 Schema 不公开暴露。CORS、PUBLIC_WEB_
 | 表结构与迁移 | [数据库说明](database/README.md) |
 | 开发过程 | [DEVELOPMENT](docs/DEVELOPMENT.md) |
 | 部署配置 | [DEPLOYMENT](docs/DEPLOYMENT.md) |
+| 生产稳定性与冷启动 | [稳定性验证](docs/PRODUCTION-STABILITY.md)、[Render 支持报告](docs/RENDER-SUPPORT-REPORT.md) |
 | OAuth | [开发记录](docs/V0.7.0-GITHUB-OAUTH.md) |
 | 正式 / Demo 隔离 | [DEMO-ISOLATION](docs/DEMO-ISOLATION.md) |
 | 人工验收 | [最终验收](docs/FINAL-ACCEPTANCE.md)、[v0.7.0 验收](docs/V0.7.0-ACCEPTANCE.md) |
