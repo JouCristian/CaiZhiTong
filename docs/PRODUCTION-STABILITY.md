@@ -50,7 +50,26 @@ Tests: `node --test scripts/check-availability.test.mjs` uses loopback synthetic
 
 ## Results and limits
 
-Production idle cycles, constrained Docker measurements, final CI and the hosting recommendation will be appended after real execution. Until then they are **pending**, not passed. No scheduled ping, paid upgrade, migration or production credential change has been made.
+### Constrained Docker evidence
+
+[Candidate CI 42474251299](https://github.com/JouCristian/CaiZhiTong/actions/runs/42474251299) passed. After one untimed warmup, two runs per mode on the same runner/image, 0.1 CPU / 512 MiB:
+
+| Mode | Spring context (s) | Application ready after runners (s) | First observed health + ready (s) | cgroup peak memory (MiB) |
+| --- | --- | --- | --- | --- |
+| Baseline 1 | 151.098 | 156.998 | 174.386 | 198.17 |
+| Tier 1 run 1 | 77.401 | 80.395 | 89.764 | 156.97 |
+| Tier 1 run 2 | 75.505 | 79.103 | 88.070 | 156.71 |
+| Baseline 2 | 156.798 | 164.399 | 179.321 | 199.79 |
+
+Mean application ready: **160.699 → 79.749 s (50.4% shorter)**. Every run stayed within the hard memory limit, `OOMKilled=false`, restart count 0. These are isolated quota measurements, not production promises. JVM compiler monitoring time is cumulative elapsed compilation time, not a direct per-process CPU-time measurement.
+
+The same CI passed Maven 195/195, TypeScript/build, Mock OAuth/Demo/connection 34/34, motion 6/6, probe tests 5/5, image build and the original 512 MiB runtime security smoke.
+
+### Idle observation excluded from cold-start counts
+
+After the last local normal checks at about 11:01Z, an explicitly delayed GitHub probe at **11:20:00Z** returned health 200 in 0.432 s (TLS 0.041 s) and config 200 in 0.292 s (TLS 0.016 s). Later log correlation shows that the running service did **not** shut down until **11:46:48Z**. Thus the 11:20 request is a **warm availability check**, not a passed idle-spin-up cycle. Uncontrolled public traffic can postpone sleep; simply waiting 17 minutes is insufficient. The one-time diagnostic push trigger was removed from the final workflow.
+
+Production idle cycles, final CI and the hosting recommendation will be appended after real execution. Until then they are **pending**, not passed. No scheduled ping, paid upgrade, migration or production credential change has been made.
 
 ## Recovery boundaries
 

@@ -1,8 +1,5 @@
 name: Production availability (on demand)
 on:
-  push:
-    branches: ['fix/production-startup-stability']
-    paths: ['.github/workflows/availability.yml']
   workflow_dispatch:
     inputs:
       timeout_seconds:
@@ -14,23 +11,12 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '24.22.1'
-      - name: One-time idle experiment (removed before merge)
-        if: github.event_name == 'push'
-        run: |
-          python3 - <<'PY'
-          from datetime import datetime, timezone
-          import time
-          first_request = datetime.fromisoformat('2026-11-08T11:20:00+00:00')
-          delay = max(0, (first_request - datetime.now(timezone.utc)).total_seconds())
-          print(f'No application requests before {first_request.isoformat()}; waiting {delay:.0f} seconds.', flush=True)
-          time.sleep(delay)
-          PY
       - name: Check public health and OAuth capability (no credentials)
         env:
           PROBE_TIMEOUT_SECONDS: ${{ inputs.timeout_seconds || '180' }}
