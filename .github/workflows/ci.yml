@@ -1,5 +1,8 @@
 name: Build and test
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
@@ -96,6 +99,7 @@ jobs:
           test "$(docker inspect -f '{{.State.OOMKilled}}/{{.RestartCount}}' caizhitong-ci-runtime)" = false/0
           docker stats --no-stream --format '{{.MemUsage}}' caizhitong-ci-runtime
       - name: Compare startup at 0.1 CPU and 512 MiB (isolated database)
+        if: github.event_name == 'workflow_dispatch'
         shell: bash
         env:
           DB_URL: jdbc:postgresql://localhost:5432/caizhitong_startup_perf_test
@@ -104,7 +108,7 @@ jobs:
           export JWT_SECRET="$(openssl rand -base64 48)"
           python3 scripts/profile-startup.py
       - name: Retain isolated startup measurements
-        if: always()
+        if: always() && github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
           name: isolated-startup-${{ github.run_id }}

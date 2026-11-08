@@ -29,6 +29,18 @@ test('a response that never completes has a total deadline', async () => {
     assert.equal(result.outcome, 'timeout'); assert.ok(result.totalMs < 1000)
   })
 })
+test('first-byte timing is captured before delayed response headers finish', async () => {
+  await withServer((_req, res) => {
+    const socket = res.socket
+    const body = '{"status":"UP"}'
+    socket.write('HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n')
+    setTimeout(() => socket.end(`Content-Length: ${Buffer.byteLength(body)}\r\nConnection: close\r\n\r\n${body}`), 120)
+  }, async origin => {
+    const result = await probe(origin, '/actuator/health', 2000)
+    assert.equal(result.outcome, 'ok')
+    assert.ok(result.totalMs - result.firstByteMs >= 80, 'TTFB must not wait for all response headers')
+  })
+})
 test('HTTP failure, invalid JSON and false OAuth availability are distinct', async () => {
   for (const [status, body, expected] of [[503, '{}', 'http_error'], [200, '{', 'invalid_response'], [200, '{"code":0,"data":{"githubEnabled":false}}', 'ok']]) {
     await withServer((_req, res) => { res.writeHead(status); res.end(body) }, async origin => {
