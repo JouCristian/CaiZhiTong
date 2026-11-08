@@ -1,0 +1,31 @@
+name: One-off public login connectivity diagnosis
+on:
+  push:
+    branches: [fix/render-login-connectivity]
+    paths: [.github/workflows/login-connectivity-probe.yml]
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Measure public HTTPS endpoints from an independent network
+        shell: bash
+        run: |
+          for path in actuator/health api/auth/oauth/config; do
+            curl --silent --show-error --connect-timeout 10 --max-time 180 \
+              -H 'Origin: https://caizhitong-eight.vercel.app' \
+              --dump-header /tmp/probe.headers --output /tmp/probe.body \
+              --write-out "${path} HTTP=%{http_code} TLS=%{time_appconnect} TTFB=%{time_starttransfer} TOTAL=%{time_total}\n" \
+              "https://caizhitong-api.onrender.com/${path}" || true
+            grep -iE '^HTTP/|^server:|^date:|^access-control-allow-origin:' /tmp/probe.headers || true
+            python3 - <<'PY'
+          import json, pathlib
+          try:
+              body=json.loads(pathlib.Path('/tmp/probe.body').read_text())
+              print({key:body[key] for key in ('status','code') if key in body})
+              if isinstance(body.get('data'),dict): print({'githubEnabled':body['data'].get('githubEnabled')})
+          except (ValueError,OSError): print('No valid JSON response received')
+          PY
+          done
