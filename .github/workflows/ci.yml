@@ -40,6 +40,8 @@ jobs:
         working-directory: frontend
       - run: npm run typecheck && npm run build
         working-directory: frontend
+      - name: Test credential-free availability checker
+        run: node --test scripts/check-availability.test.mjs
       - name: Install isolated OAuth browser runtime
         run: npx playwright install --with-deps chromium
         working-directory: frontend
@@ -93,3 +95,19 @@ jobs:
           PY
           test "$(docker inspect -f '{{.State.OOMKilled}}/{{.RestartCount}}' caizhitong-ci-runtime)" = false/0
           docker stats --no-stream --format '{{.MemUsage}}' caizhitong-ci-runtime
+      - name: Compare startup at 0.1 CPU and 512 MiB (isolated database)
+        shell: bash
+        env:
+          DB_URL: jdbc:postgresql://localhost:5432/caizhitong_startup_perf_test
+        run: |
+          docker exec "${{ job.services.postgres.id }}" psql -U caizhitong -d postgres -c 'CREATE DATABASE caizhitong_startup_perf_test'
+          export JWT_SECRET="$(openssl rand -base64 48)"
+          python3 scripts/profile-startup.py
+      - name: Retain isolated startup measurements
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: isolated-startup-${{ github.run_id }}
+          path: .runtime/startup-ci/
+          retention-days: 30
+          if-no-files-found: warn

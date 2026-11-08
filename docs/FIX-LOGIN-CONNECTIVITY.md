@@ -1,5 +1,7 @@
 # 登录连接故障专项 · 2026-11-08
 
+> 后续状态：经用户授权，PR #4 已合并并部署。本文保留原故障及候选交付时序；当前生产部署、启动优化及真实空闲唤醒验证见 [PRODUCTION-STABILITY.md](PRODUCTION-STABILITY.md)。
+
 分支：`fix/render-login-connectivity`。冻结标签 v0.7.0 保持原指向，本修复通过 PR 等待人工验收，不合并 main、不上线补丁、不改变生产数据库、权限、密钥或套餐。
 
 ## 结论分层
