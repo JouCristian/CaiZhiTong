@@ -54,6 +54,10 @@ p { text-wrap: pretty; }
 .github-login > .ant-btn { height: 48px; font-weight: 600; }
 .github-login > p { color: var(--muted); font-size: 12px; line-height: 1.7; margin-top: 12px; }
 .github-login .ant-alert { margin-top: 12px; }
+.oauth-connection { margin-top: 12px; padding: 12px 14px; background: #f4f7fb; border: 1px solid var(--line); border-radius: 10px; font-size: 12px; line-height: 1.65; }
+.oauth-connection > strong { color: var(--ink); font-weight: 600; }
+.oauth-connection p { margin: 5px 0 10px; color: var(--muted); }
+.oauth-connection-actions { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; color: var(--muted); }
 .password-login-toggle { min-height: 44px; margin: -4px 0 18px; }
 .oauth-result { min-height: 100dvh; padding: 24px; }
 .oauth-progress { width: min(430px, 100%); padding: 32px; }

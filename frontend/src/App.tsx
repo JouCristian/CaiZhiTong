@@ -1,5 +1,5 @@
 import { MotionDrawer as Drawer } from './motion/MotionDrawer'
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import type { MenuProps } from 'antd'
 import { Alert, Button, Form, Input, Menu, Result, Skeleton, Tooltip } from 'antd'
@@ -63,7 +63,9 @@ function Login() {
   const { user, loading, login, expired } = useAuth()
   const [submitting, setSubmitting] = useState(false)
   const [githubAvailable, setGithubAvailable] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
+  const [passwordView, setPasswordView] = useState<'auto' | 'shown' | 'hidden'>('auto')
+  const showPassword = passwordView === 'shown' || (passwordView === 'auto' && !githubAvailable)
+  const submitLock = useRef(false)
   const [error, setError] = useState('')
   const [waiting, setWaiting] = useState(false)
   useEffect(() => {
@@ -79,10 +81,12 @@ function Login() {
   const target = from && from.startsWith('/') && !from.startsWith('//') && from !== '/login' ? from : '/dashboard'
   if (user) return <Navigate to={target} replace />
   async function submit(values: { username: string; password: string }) {
+    if (submitLock.current) return
+    submitLock.current = true
     setError(''); setSubmitting(true)
     try { await login(values.username.trim(), values.password); navigate(target, { replace: true }) }
     catch (e) { setError((e as Error).message) }
-    finally { setSubmitting(false) }
+    finally { submitLock.current = false; setSubmitting(false) }
   }
   return <main className="login-page">
     <section className="login-story"><Brand />{animate ? <Suspense fallback={<StaticLoginStory />}><LoginStory /></Suspense> : <StaticLoginStory />}</section>
@@ -91,12 +95,12 @@ function Login() {
       {error && <Alert type="error" showIcon message={error} className="form-alert" />}
       {waiting && <Alert type="info" showIcon message="正在连接服务，请稍候" description="首次访问或长时间未使用后，连接可能需要几分钟，请勿重复提交。" className="form-alert" />}
       <GithubLogin target={target} onAvailability={setGithubAvailable} />
-      {githubAvailable && <Button type="text" block className="password-login-toggle" onClick={() => setShowPassword(value => !value)} aria-expanded={showPassword}>{showPassword ? '收起账号密码登录' : '使用账号密码登录'}</Button>}
-      {(!githubAvailable || showPassword) && <Form layout="vertical" requiredMark={false} onFinish={submit} autoComplete="on" size="large">
+      <Button type="text" block className="password-login-toggle" onClick={() => setPasswordView(showPassword ? 'hidden' : 'shown')} aria-expanded={showPassword}>{showPassword ? '收起账号密码登录' : '使用账号密码登录'}</Button>
+      <Form layout="vertical" requiredMark={false} onFinish={submit} autoComplete="on" size="large" style={{ display: showPassword ? undefined : 'none' }} onFocusCapture={() => setPasswordView('shown')}>
         <Form.Item label="用户名" name="username" rules={[{ required: true, whitespace: true, message: '请输入用户名' }, { max: 64, message: '用户名最多 64 个字符' }]}><Input prefix={<UserOutlined />} placeholder="请输入用户名" autoComplete="username" maxLength={64} /></Form.Item>
         <Form.Item label="密码" name="password" rules={[{ required: true, message: '请输入密码' }, { max: 72, message: '密码最多 72 个字符' }]}><Input.Password prefix={<LockOutlined />} placeholder="请输入密码" autoComplete="current-password" maxLength={72} /></Form.Item>
         <Button type="primary" htmlType="submit" block size="large" aria-label="登录工作空间" loading={submitting} className="login-submit">登录工作空间 <ArrowRightOutlined aria-hidden /></Button>
-      </Form>}
+      </Form>
       <div className="login-note"><InfoCircleOutlined />{githubAvailable ? <p>GitHub 账户进入公开只读演示。<br />业务成员可使用已分配的账号密码。</p> : import.meta.env.PROD ? <p>请使用管理员分配的账户登录。<br />如需访问权限，请联系系统管理员。</p> : <p>本地演示支持管理员、实验员和学生账户。<br />请使用开发环境中生成的凭据登录。</p>}</div>
       <div className="login-security"><SafetyCertificateOutlined /> 密码经加密存储，访问受角色权限保护</div>
     </div><footer>材智通 CaiZhiTong <span>·</span> 智慧材料库数字化管理系统</footer></section>
