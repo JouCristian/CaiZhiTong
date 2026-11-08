@@ -1,0 +1,377 @@
+{
+  "generatedAt": "2026-11-08T14:27:13.5105165Z",
+  "timeZone": "UTC",
+  "productionServiceId": "srv-dbl9s43m8hqs738l94ig",
+  "frozenTagCommit": "ef5c1786727ad8c066ef9ce8a28c6a40433877fb",
+  "oauthFixMergeCommit": "48fefa24a330a7d274a48b5d7411c5d5ad3363a6",
+  "optimizedApplicationCommit": "585a941b90972d6f3af637e2a922cfb6b198f1df",
+  "warmObservationExcludedFromWakeCount": {
+    "runId": "42474251336",
+    "at": "2026-11-08T11:20:00Z",
+    "reason": "Application did not shut down until 11:46:48Z"
+  },
+  "isolatedQuotaMeasurements": [
+    {
+      "index": 0,
+      "mode": "warmup",
+      "readySeconds": 90.755,
+      "springSeconds": 77.699,
+      "startupMs": 81201,
+      "jvmUptimeMs": 88885,
+      "compilationMs": 32139,
+      "heapUsedMiB": 33,
+      "peakMemoryMiB": 156.68,
+      "memoryLimitMiB": 512,
+      "cpuQuota": 0.1,
+      "oomKilled": false,
+      "restartCount": 0
+    },
+    {
+      "index": 1,
+      "mode": "baseline",
+      "readySeconds": 174.386,
+      "springSeconds": 151.098,
+      "startupMs": 156998,
+      "jvmUptimeMs": 171985,
+      "compilationMs": 213576,
+      "heapUsedMiB": 38,
+      "peakMemoryMiB": 198.17,
+      "memoryLimitMiB": 512,
+      "cpuQuota": 0.1,
+      "oomKilled": false,
+      "restartCount": 0
+    },
+    {
+      "index": 2,
+      "mode": "tier1",
+      "readySeconds": 89.764,
+      "springSeconds": 77.401,
+      "startupMs": 80395,
+      "jvmUptimeMs": 87782,
+      "compilationMs": 30252,
+      "heapUsedMiB": 31,
+      "peakMemoryMiB": 156.97,
+      "memoryLimitMiB": 512,
+      "cpuQuota": 0.1,
+      "oomKilled": false,
+      "restartCount": 0
+    },
+    {
+      "index": 3,
+      "mode": "tier1",
+      "readySeconds": 88.07,
+      "springSeconds": 75.505,
+      "startupMs": 79103,
+      "jvmUptimeMs": 86782,
+      "compilationMs": 26528,
+      "heapUsedMiB": 34,
+      "peakMemoryMiB": 156.71,
+      "memoryLimitMiB": 512,
+      "cpuQuota": 0.1,
+      "oomKilled": false,
+      "restartCount": 0
+    },
+    {
+      "index": 4,
+      "mode": "baseline",
+      "readySeconds": 179.321,
+      "springSeconds": 156.798,
+      "startupMs": 164399,
+      "jvmUptimeMs": 178484,
+      "compilationMs": 221675,
+      "heapUsedMiB": 39,
+      "peakMemoryMiB": 199.79,
+      "memoryLimitMiB": 512,
+      "cpuQuota": 0.1,
+      "oomKilled": false,
+      "restartCount": 0
+    }
+  ],
+  "quotaMeasurementRunId": "42474251299",
+  "optimizedDeployment": {
+    "id": "dep-dbo7sk0ae00c739d8aeg",
+    "liveAt": "2026-11-08T13:53:15.763928Z",
+    "springSeconds": 59.794,
+    "applicationReadyMs": 63918,
+    "logs": [
+      {
+        "timestamp": "2026-11-08T13:52:38.098065946Z",
+        "message": "2026-11-08T13:52:38.097Z  INFO 1 --- [caizhitong] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 8 migrations (execution time 00:00.433s)"
+      },
+      {
+        "timestamp": "2026-11-08T13:52:39.407309123Z",
+        "message": "2026-11-08T13:52:39.406Z  INFO 1 --- [caizhitong] [           main] o.f.core.internal.command.DbMigrate      : Schema \"caizhitong\" is up to date. No migration necessary."
+      },
+      {
+        "timestamp": "2026-11-08T13:53:04.316993116Z",
+        "message": "2026-11-08T13:53:04.316Z  INFO 1 --- [caizhitong] [           main] cn.caizhitong.CaiZhiTongApplication      : Started CaiZhiTongApplication in 59.794 seconds (process running for 64.93)"
+      },
+      {
+        "timestamp": "2026-11-08T13:53:04.617572823Z",
+        "message": "2026-11-08T13:53:04.617Z  INFO 1 --- [caizhitong] [   scheduling-1] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting..."
+      },
+      {
+        "timestamp": "2026-11-08T13:53:06.117069554Z",
+        "message": "2026-11-08T13:53:06.116Z  INFO 1 --- [caizhitong] [   scheduling-1] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed."
+      },
+      {
+        "timestamp": "2026-11-08T13:53:10.07205186Z",
+        "message": "2026-11-08T13:53:10.071Z  INFO 1 --- [caizhitong] [           main] c.caizhitong.config.StartupDiagnostics   : Application ready: startupMs=63918, jvmUptimeMs=70685, compilationMs=18829, heapUsedMiB=43"
+      }
+    ]
+  },
+  "isolatedRegression": {
+    "frontendBuild": "passed",
+    "apiSmokeGroups": 5,
+    "maven": {
+      "skipped": 0,
+      "passed": 195,
+      "failed": 0,
+      "jvmTier1": true
+    },
+    "businessBrowser": 70,
+    "typescript": "passed",
+    "oauthDemoConnectionBrowser": 34
+  },
+  "cycles": [
+    {
+      "applicationCommit": "48fefa24a330a7d274a48b5d7411c5d5ad3363a6",
+      "lastObservedNormalAt": "2026-11-08T11:20:00.784Z",
+      "number": 1,
+      "independentRunId": "42485090406",
+      "logsAfterObservation": {
+        "at": "2026-11-08T21:41:00.541937+08:00",
+        "logs": [
+          {
+            "timestamp": "2026-11-08T10:59:17.094717228Z",
+            "message": "2026-11-08T10:59:17.094Z  INFO 1 --- [caizhitong] [   scheduling-1] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting..."
+          },
+          {
+            "timestamp": "2026-11-08T10:59:17.287364492Z",
+            "message": "2026-11-08T10:59:17.188Z  INFO 1 --- [caizhitong] [           main] cn.caizhitong.CaiZhiTongApplication      : Started CaiZhiTongApplication in 114.398 seconds (process running for 123.8)"
+          },
+          {
+            "timestamp": "2026-11-08T10:59:19.290745542Z",
+            "message": "2026-11-08T10:59:19.290Z  INFO 1 --- [caizhitong] [   scheduling-1] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed."
+          },
+          {
+            "timestamp": "2026-11-08T10:59:30.137926639Z",
+            "message": "2026-11-08T10:59:30.137Z  INFO 1 --- [caizhitong] [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete"
+          },
+          {
+            "timestamp": "2026-11-08T10:59:30.143675239Z",
+            "message": "2026-11-08T10:59:30.143Z  INFO 1 --- [caizhitong] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete"
+          },
+          {
+            "timestamp": "2026-11-08T10:59:30.247352603Z",
+            "message": "2026-11-08T10:59:30.246Z  INFO 1 --- [caizhitong] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated..."
+          },
+          {
+            "timestamp": "2026-11-08T10:59:30.503566766Z",
+            "message": "2026-11-08T10:59:30.503Z  INFO 1 --- [caizhitong] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed."
+          },
+          {
+            "timestamp": "2026-11-08T11:46:48.139007178Z",
+            "message": "2026-11-08T11:46:48.138Z  INFO 1 --- [caizhitong] [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete"
+          },
+          {
+            "timestamp": "2026-11-08T11:46:48.143738334Z",
+            "message": "2026-11-08T11:46:48.143Z  INFO 1 --- [caizhitong] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete"
+          },
+          {
+            "timestamp": "2026-11-08T11:46:48.288187759Z",
+            "message": "2026-11-08T11:46:48.287Z  INFO 1 --- [caizhitong] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated..."
+          },
+          {
+            "timestamp": "2026-11-08T11:46:48.487776267Z",
+            "message": "2026-11-08T11:46:48.487Z  INFO 1 --- [caizhitong] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed."
+          }
+        ],
+        "receivedRows": 30
+      },
+      "independent": [
+        {
+          "startedAt": "2026-11-08T13:28:13.77Z",
+          "finishedAt": "2026-11-08T13:32:13.785Z",
+          "origin": "https://caizhitong-api.onrender.com",
+          "path": "/actuator/health",
+          "status": null,
+          "tlsMs": 81,
+          "firstByteMs": null,
+          "totalMs": 240014,
+          "outcome": "timeout"
+        },
+        {
+          "startedAt": "2026-11-08T13:32:13.786Z",
+          "finishedAt": "2026-11-08T13:36:13.788Z",
+          "origin": "https://caizhitong-api.onrender.com",
+          "path": "/api/auth/oauth/config",
+          "status": null,
+          "tlsMs": 30,
+          "firstByteMs": null,
+          "totalMs": 240002,
+          "outcome": "timeout"
+        }
+      ],
+      "local": [
+        {
+          "startedAt": "2026-11-08T13:28:04.85Z",
+          "finishedAt": "2026-11-08T13:32:04.915Z",
+          "origin": "https://caizhitong-api.onrender.com",
+          "path": "/actuator/health",
+          "status": null,
+          "tlsMs": 713,
+          "firstByteMs": null,
+          "totalMs": 240057,
+          "outcome": "timeout"
+        },
+        {
+          "startedAt": "2026-11-08T13:32:04.919Z",
+          "finishedAt": "2026-11-08T13:36:04.926Z",
+          "origin": "https://caizhitong-api.onrender.com",
+          "path": "/api/auth/oauth/config",
+          "status": null,
+          "tlsMs": 624,
+          "firstByteMs": null,
+          "totalMs": 240008,
+          "outcome": "timeout"
+        }
+      ],
+      "shutdownAt": "2026-11-08T11:46:48.487776267Z",
+      "serviceAfterFirstTimeout": {
+        "at": "2026-11-08T13:32:53.0269962Z",
+        "suspended": "not_suspended",
+        "suspenders": [],
+        "desiredInstances": 1,
+        "plan": "free",
+        "instances": []
+      },
+      "outcome": "failed_no_new_instance_observed"
+    },
+    {
+      "applicationCommit": "585a941b90972d6f3af637e2a922cfb6b198f1df",
+      "number": 2,
+      "independentRunId": "42488891370",
+      "beforeWake": {
+        "at": "2026-11-08T14:15:08.1307084Z",
+        "lastNormalAt": "2026-11-08T13:55:46Z",
+        "instances": [],
+        "lastShutdownAt": "2026-11-08T14:10:44.34470482Z",
+        "confirmed": true
+      },
+      "independent": [
+        {
+          "startedAt": "2026-11-08T14:15:25.76Z",
+          "finishedAt": "2026-11-08T14:19:25.775Z",
+          "origin": "https://caizhitong-api.onrender.com",
+          "path": "/actuator/health",
+          "status": null,
+          "tlsMs": 42,
+          "firstByteMs": null,
+          "totalMs": 240015,
+          "outcome": "timeout"
+        },
+        {
+          "startedAt": "2026-11-08T14:19:25.776Z",
+          "finishedAt": "2026-11-08T14:23:25.779Z",
+          "origin": "https://caizhitong-api.onrender.com",
+          "path": "/api/auth/oauth/config",
+          "status": null,
+          "tlsMs": 41,
+          "firstByteMs": null,
+          "totalMs": 240002,
+          "outcome": "timeout"
+        }
+      ],
+      "local": [
+        {
+          "startedAt": "2026-11-08T14:15:16.341Z",
+          "finishedAt": "2026-11-08T14:19:16.438Z",
+          "origin": "https://caizhitong-api.onrender.com",
+          "path": "/actuator/health",
+          "status": null,
+          "tlsMs": 862,
+          "firstByteMs": null,
+          "totalMs": 240091,
+          "outcome": "timeout"
+        },
+        {
+          "startedAt": "2026-11-08T14:19:16.441Z",
+          "finishedAt": "2026-11-08T14:23:16.452Z",
+          "origin": "https://caizhitong-api.onrender.com",
+          "path": "/api/auth/oauth/config",
+          "status": null,
+          "tlsMs": 991,
+          "firstByteMs": null,
+          "totalMs": 240011,
+          "outcome": "timeout"
+        }
+      ],
+      "serviceBeforeWake": {
+        "at": "2026-11-08T14:15:10.7939846Z",
+        "suspended": "not_suspended",
+        "suspenders": [],
+        "plan": "free",
+        "desiredInstances": 1
+      },
+      "afterWake": {
+        "at": "2026-11-08T14:23:22.1904116Z",
+        "instances": [],
+        "localExit": 1
+      },
+      "logsAfterWake": {
+        "at": "2026-11-08T22:23:20.025523+08:00",
+        "logs": [
+          {
+            "timestamp": "2026-11-08T13:52:39.407309123Z",
+            "message": "2026-11-08T13:52:39.406Z  INFO 1 --- [caizhitong] [           main] o.f.core.internal.command.DbMigrate      : Schema \"caizhitong\" is up to date. No migration necessary."
+          },
+          {
+            "timestamp": "2026-11-08T13:53:04.316993116Z",
+            "message": "2026-11-08T13:53:04.316Z  INFO 1 --- [caizhitong] [           main] cn.caizhitong.CaiZhiTongApplication      : Started CaiZhiTongApplication in 59.794 seconds (process running for 64.93)"
+          },
+          {
+            "timestamp": "2026-11-08T13:53:04.617572823Z",
+            "message": "2026-11-08T13:53:04.617Z  INFO 1 --- [caizhitong] [   scheduling-1] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting..."
+          },
+          {
+            "timestamp": "2026-11-08T13:53:06.117069554Z",
+            "message": "2026-11-08T13:53:06.116Z  INFO 1 --- [caizhitong] [   scheduling-1] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed."
+          },
+          {
+            "timestamp": "2026-11-08T13:53:10.07205186Z",
+            "message": "2026-11-08T13:53:10.071Z  INFO 1 --- [caizhitong] [           main] c.caizhitong.config.StartupDiagnostics   : Application ready: startupMs=63918, jvmUptimeMs=70685, compilationMs=18829, heapUsedMiB=43"
+          },
+          {
+            "timestamp": "2026-11-08T14:10:44.130135012Z",
+            "message": "2026-11-08T14:10:44.129Z  INFO 1 --- [caizhitong] [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete"
+          },
+          {
+            "timestamp": "2026-11-08T14:10:44.132037445Z",
+            "message": "2026-11-08T14:10:44.131Z  INFO 1 --- [caizhitong] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete"
+          },
+          {
+            "timestamp": "2026-11-08T14:10:44.218700693Z",
+            "message": "2026-11-08T14:10:44.218Z  INFO 1 --- [caizhitong] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated..."
+          },
+          {
+            "timestamp": "2026-11-08T14:10:44.34470482Z",
+            "message": "2026-11-08T14:10:44.344Z  INFO 1 --- [caizhitong] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed."
+          }
+        ],
+        "receivedRows": 30
+      },
+      "outcome": "failed_no_new_instance_observed"
+    }
+  ],
+  "monitoring": {
+    "artifactRetentionDays": 30,
+    "authenticated": false,
+    "endpoints": [
+      "/actuator/health",
+      "/api/auth/oauth/config"
+    ],
+    "businessWrites": false,
+    "scheduledKeepalive": false
+  }
+}

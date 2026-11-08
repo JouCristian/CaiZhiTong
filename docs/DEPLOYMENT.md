@@ -80,7 +80,7 @@ v0.6.0 初始部署原样执行 V1–V6，v0.7.0 仅追加 V7，不改写旧脚�
 - Docker build context `backend`；Dockerfile 使用控制台要求的仓库相对路径 `backend/Dockerfile`。本地等价命令：`docker build -t caizhitong-backend:0.7.0 ./backend`。
 - 健康检查 `/actuator/health`。cloud profile 优先 SERVER_PORT，其次平台 PORT，默认 10000；不要把后端作为 npm / Vite 服务启动。
 - 环境设置为 cloud profile、Supabase 模式、独立 DB / Flyway 配置与新 JWT 密钥。JWT_SECRET 使用新生成、Base64 解码至少 32 字节的随机值，不复用本地密钥。
-- 镜像以非 root 用户运行，JDK 17 容器感知堆上限为内存的 40%，Serial GC，限制 Metaspace / Code Cache / Direct Memory；cloud profile 限制 Tomcat 线程，数据库池默认最多 3 个连接。
+- 镜像以非 root 用户运行，JDK 17 容器感知堆上限为内存的 40%，Serial GC，限制 Metaspace / Code Cache / Direct Memory；cloud profile 限制 Tomcat 线程，数据库池默认最多 3 个连接。PR #5 增加并部署 `-XX:TieredStopAtLevel=1`，以降低小 CPU 实例的启动编译成本，可能牺牲峰值吞吐；若平台自定义了 JAVA_TOOL_OPTIONS，镜像默认值会被覆盖。正式启动约 59.8 秒，真实空闲唤醒须单独验收，见[稳定性记录](PRODUCTION-STABILITY.md)。
 - GitHub CI 构建 Docker 镜像，并在 512 MiB 限制下连接临时 PostgreSQL，以 local 存储验证健康 / 401 / OOM 与重启次数。真实 Render 的独立部署结果见云部署记录。
 - Free 实例本地磁盘不是附件的可靠持久层，实际部署必须使用 Supabase 模式。照片不会依赖 Render 本地目录跨部署保存。
 - 启动失败需区分数据库连接 / SSL / 权限 / Schema、Bucket 鉴权和 OOM；不得把内存不足简单报告成数据库故障。真实平台还需观察冷启动、连续请求和重启指标。
@@ -97,7 +97,16 @@ v0.6.0 初始部署原样执行 V1–V6，v0.7.0 仅追加 V7，不改写旧脚�
 
 设置 `VITE_API_BASE_URL=https://caizhitong-api.onrender.com`（无 /api 后缀）、`VITE_API_TIMEOUT_MS=240000`。Vite 变量在构建时写入，修改后必须重新构建；禁止加入数据库、JWT 或 Storage 秘密。现有 vercel.json 支持 SPA 深层路由。生产域名公开访问，预览部署保留 Vercel 登录保护，且不在后端生产 CORS 中。
 
-Free 后端休眠后唤醒可能需要几分钟；前端默认本地等待 12 秒，生产设为 240 秒并显示长等待提示。该设置不保证平台可用性，不使用虚假流量保活。
+业务请求默认本地等待 12 秒，生产设为 240 秒。OAuth 配置探测独立为 8 秒，每轮最多 6 次 GET（首次 + 5 次有限自动重试），耗尽后停止，用户可手动重连；密码表单不被配置探测阻塞。接口不可达不能等同于 OAuth 未启用。该体验不能修复平台未调度实例的问题，也不保证平台可用性。
+
+### 按需可用性与部署检查
+
+- 本机：`node scripts/check-availability.mjs`。独立网络：GitHub Actions → **Production availability (on demand)** → Run workflow。仅请求公开 health/config，不需要业务账户或 JWT。
+- 每个接口一个有总超时的 GET，保留状态、TLS / 首字节 / 总时长；失败退出非零，Actions 无论成功失败均保留 JSONL 30 天。配置格式、关闭状态和网络错误分开记录，不公开响应正文或密钥。
+- 部署层面核对当前 main SHA、GitHub CI、Render 最新 deploy 的 commit/status/finishedAt 以及 Vercel **production** 的 commit/READY；不能用预览部署替代正式部署，不能把 HTTP 失败未经分析归因于部署失败。已有 Render Dashboard Events / Logs 提供部署失败证据，不新增带业务写权限的监控账户。
+- 当前没有定时保活。低于 15 分钟的 Ping 可能减少普通空闲休眠，但会消耗免费实例时数，且不能保证修复未调度实例。真实空闲测试须关闭此类请求；完整操作边界与结果见[稳定性记录](PRODUCTION-STABILITY.md)。
+- CPU / 内存启动对照是独立库实验：手动运行 **Build and test**（`gh workflow run ci.yml --ref main`）会追加 0.1 CPU / 512 MiB 配对测量；日常 Push / PR CI 保留完整原有回归与 512 MiB 冒烟，不必为文档提交重复约十分钟的性能实验。
+- 仅文档维护可在最终合并提交中使用 Render 官方支持的 `[skip render]` 标记，保留 CI 并避免无意义重启；应用配置或源码修改不得借此跳过必要上线。实际部署 SHA 应与 main SHA 分开记录，见 [Render deploys](https://render.com/docs/deploys#skipping-an-auto-deploy)。
 
 ## 维护与后续验证
 

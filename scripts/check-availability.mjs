@@ -29,7 +29,7 @@ export function probe(origin, path, timeoutMs) {
     }
     const req = transport.get(origin + path, { agent: false, headers: { Accept: 'application/json', 'User-Agent': 'CaiZhiTong-Availability/1.0' } }, res => {
       status = res.statusCode
-      firstByteMs = Math.round(performance.now() - start)
+      firstByteMs ??= Math.round(performance.now() - start)
       res.on('data', chunk => {
         bytes += chunk.length
         if (bytes > 65536) { finish('response_too_large'); req.destroy(); return }
@@ -46,7 +46,11 @@ export function probe(origin, path, timeoutMs) {
       })
     })
     const deadline = setTimeout(() => { finish('timeout'); req.destroy() }, timeoutMs)
-    req.on('socket', socket => socket.once('secureConnect', () => { tlsMs = Math.round(performance.now() - start) }))
+    req.on('socket', socket => {
+      socket.once('secureConnect', () => { tlsMs = Math.round(performance.now() - start) })
+      // Observe the first plaintext response byte before HTTP finishes parsing headers.
+      socket.prependOnceListener('data', () => { firstByteMs ??= Math.round(performance.now() - start) })
+    })
     req.on('error', () => finish('network_error'))
   })
 }

@@ -18,7 +18,7 @@
 
 这是已完成课程项目目标、可真实运行的系统。生产级审批、灾备、性能与合规能力的边界见[当前限制](#当前限制与后续方向)。
 
-**维护说明（2026-11-08，修复候选分支）：** 后端曾出现跨网络零字节超时，经同一冻结版本重新部署后，health / OAuth 配置及正式桌面 / 手机入口已恢复。前端短时检测 / 有限重试补丁仍待 PR 人工验收，未上线；诊断和恢复证据见[专项记录](docs/FIX-LOGIN-CONNECTIVITY.md)，冻结标签不变。
+**维护说明（2026-11-08）：** [PR #4](https://github.com/JouCristian/CaiZhiTong/pull/4) 的短时检测、有限重试和手动重连已部署到正式站点，密码入口独立可用。真实休眠后再次观察到 Render 无运行实例、跨网络零字节超时，不能承诺随时可登录。启动优化与休眠验收见[稳定性记录](docs/PRODUCTION-STABILITY.md)，原故障证据见[专项记录](docs/FIX-LOGIN-CONNECTIVITY.md)；冻结标签不变。
 
 ## 阅读导航
 
@@ -55,7 +55,7 @@
 
 **公开体验只读，与正式业务隔离。** Demo 使用独立 `demo_*` 表及服务端 API，不读取正式材料、库存、个人领用、财务报表或私人附件。游客不能执行入库、领用、报废和系统管理；直接调用正式业务 API 同样返回 403，不能自行提权，也不会因相同邮箱或用户名接管既有账户。
 
-网站不提供通用公网管理员或业务演示密码。请勿上传真实学生、采购或财务资料，完整写入流程在自己的本地库体验。Render Free 休眠后的首次连接可能需要 2–3 分钟，界面会提示等待；免费平台不提供可用性保证。
+网站不提供通用公网管理员或业务演示密码。请勿上传真实学生、采购或财务资料，完整写入流程在自己的本地库体验。Render Free 冷启动可能需要数分钟，也曾出现请求未能唤醒实例；登录页会显示有限重试和手动重连，免费平台不提供可用性保证。
 
 ## 项目特色
 
@@ -342,7 +342,7 @@ Windows 重新打包运行中的同名 JAR 前应停止对应进程，避免文�
 | OAuth | GITHUB_OAUTH_ENABLED、GITHUB_CLIENT_ID、GITHUB_CLIENT_SECRET、GITHUB_REDIRECT_URI | 本地默认关闭，Secret 仅后端 |
 | 通知 | MAIL_*、ALERT_SCAN_ENABLED | SMTP 可选，缺失不影响站内预警 |
 | 前端 | VITE_API_BASE_URL | 后端源，无 /api 后缀，本地留空走代理 |
-| 超时 | VITE_API_TIMEOUT_MS | 本地 12000 ms，正式 Free 环境 240000 ms |
+| 超时 | VITE_API_TIMEOUT_MS | 业务请求本地 12000 ms、正式 Free 240000 ms；OAuth 配置独立 8000 ms |
 | 代理 | API_PROXY_TARGET | 仅 Vite，默认 http://127.0.0.1:8080 |
 
 本地 OAuth 优先 Mock Provider，无需真实个人资料。自建 App 的 Homepage / 回调、state / PKCE、一次性交换见 [OAuth 配置](docs/V0.7.0-GITHUB-OAUTH.md)。不将维护者生产 App 用于自己的 Fork。
